@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #FFFFFF;
+  --foreground: #111827;
+  --primary-orange: #F97316;
+  --primary-black: #1A1A1A;
+}
+
+/* ===== Lenis Smooth Scroll ===== */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ===== Global Styles ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-geist-sans), 'Inter', system-ui, sans-serif;
+  color: var(--foreground);
+  background: var(--background);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d4d4d4;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+/* ===== Selection ===== */
+::selection {
+  background-color: rgba(249, 115, 22, 0.2);
+  color: #1A1A1A;
+}
+
+/* ===== Utility Classes ===== */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-gradient-orange {
+    background: linear-gradient(135deg, #F97316, #EA580C);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glass-dark {
+    background: rgba(26, 26, 26, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .glass-light {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .mask-gradient-b {
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  }
+}
+
+/* ===== Component Layer ===== */
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 
+           bg-primary-orange text-white font-medium 
+           px-6 py-3 rounded-full 
+           transition-all duration-300 ease-out-expo 
+           hover:bg-primary-orange-hover hover:shadow-lg hover:shadow-orange-500/25 
+           active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 
+           bg-primary-black text-white font-medium 
+           px-6 py-3 rounded-full 
+           transition-all duration-300 ease-out-expo 
+           hover:bg-neutral-800 
+           active:scale-[0.98];
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 
+           border border-neutral-300 text-neutral-900 font-medium 
+           px-6 py-3 rounded-full 
+           transition-all duration-300 ease-out-expo 
+           hover:bg-neutral-100 hover:border-neutral-400 
+           active:scale-[0.98];
+  }
+
+  .section-padding {
+    @apply px-5 md:px-10 lg:px-16 xl:px-20;
+  }
+
+  .container-wide {
+    @apply max-w-[1440px] mx-auto w-full;
+  }
+}
