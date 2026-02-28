@@ -22,6 +22,9 @@ const configuratorController = {
     async calculatePrice(req, res, next) {
         try {
             const { product_id, configuration } = req.body;
+            if (!product_id) {
+                return res.status(400).json({ error: 'product_id is required.' });
+            }
             const product = await Product.findById(product_id);
             if (!product) {
                 return res.status(404).json({ error: 'Product not found.' });

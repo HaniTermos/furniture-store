@@ -2,7 +2,7 @@ const pool = require('../db/pool');
 const bcrypt = require('bcryptjs');
 
 const User = {
-    async create({ email, password, name, phone, role = 'customer' }) {
+    async create({ email, password, name, phone, role = 'user' }) {
         const passwordHash = await bcrypt.hash(password, 12);
         const { rows } = await pool.query(
             `INSERT INTO users (email, password_hash, name, phone, role)

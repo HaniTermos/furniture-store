@@ -13,7 +13,7 @@ const pool = new Pool({
     // Connection pool settings
     max: 20,                         // max simultaneous connections
     idleTimeoutMillis: 30000,        // close idle connections after 30s
-    connectionTimeoutMillis: 5000,   // fail if can't connect within 5s
+    connectionTimeoutMillis: 10000,   // fail if can't connect within 10s (increased for tests)
 
     // SSL for production (Hostinger VPS, etc.)
     ...(isProduction && {
