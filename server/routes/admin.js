@@ -30,4 +30,8 @@ router.post('/categories', validate(categorySchema), adminController.createCateg
 router.put('/categories/:id', validate(categoryUpdateSchema), adminController.updateCategory);
 router.delete('/categories/:id', adminController.deleteCategory);
 
+// Configuration Options & Values
+router.post('/config-options', adminController.createConfigurationOption);
+router.post('/config-values', adminController.createConfigurationValue);
+
 module.exports = router;

@@ -118,11 +118,11 @@ export default function Footer() {
 
             {/* Bottom Bar */}
             <div className="border-t border-white/10">
-                <div className="container-wide section-padding py-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="container-wide section-padding py-6 flex flex-col items-center justify-between gap-4 md:flex-row">
                     <p className="text-white/40 text-sm">
                         © {new Date().getFullYear()} High Tech Wood. All rights reserved.
                     </p>
-                    <div className="flex items-center gap-6">
+                    <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
                         <Link href="/privacy" className="text-white/40 text-sm hover:text-white/60 transition-colors">
                             Privacy
                         </Link>

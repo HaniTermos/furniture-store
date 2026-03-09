@@ -6,7 +6,7 @@ export const categories: Category[] = [
         name: 'Living Room',
         slug: 'living-room',
         description: 'Sofas, chairs, and tables for your living space',
-        image: '/images/categories/living-room.jpg',
+        image: 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?q=80&w=800&auto=format&fit=crop', // Cozy living room
         productCount: 24,
     },
     {
@@ -14,7 +14,7 @@ export const categories: Category[] = [
         name: 'Bedroom',
         slug: 'bedroom',
         description: 'Beds, nightstands, and dressers',
-        image: '/images/categories/bedroom.jpg',
+        image: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=800&auto=format&fit=crop', // Minimalist bedroom
         productCount: 18,
     },
     {
@@ -22,7 +22,7 @@ export const categories: Category[] = [
         name: 'Dining',
         slug: 'dining',
         description: 'Tables, chairs, and buffets',
-        image: '/images/categories/dining.jpg',
+        image: '/images/categories/dining.png', // Elegant dining area
         productCount: 15,
     },
     {
@@ -30,7 +30,7 @@ export const categories: Category[] = [
         name: 'Office',
         slug: 'office',
         description: 'Desks, office chairs, and shelving',
-        image: '/images/categories/office.jpg',
+        image: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=800&auto=format&fit=crop', // Modern home office
         productCount: 12,
     },
 ];

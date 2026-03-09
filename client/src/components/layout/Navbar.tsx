@@ -3,25 +3,28 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Menu, X, Search, User } from 'lucide-react';
+import { ShoppingCart, Menu, X, Search, User, Heart } from 'lucide-react';
 import { useCartStore } from '@/store/cart';
+import { useWishlistStore } from '@/store/wishlist';
 import { useAppStore } from '@/store';
 
 const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/shop', label: 'Shop' },
-    { href: '/shop?category=living-room', label: 'Inspiration' },
     { href: '/about', label: 'About Us' },
     { href: '/contact', label: 'Support' },
 ];
 
 export default function Navbar() {
+    const pathname = usePathname();
     const [scrolled, setScrolled] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
     const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu, showLbp, toggleCurrency } = useAppStore();
     const totalItems = useCartStore((s) => s.totalItems());
+    const wishlistItemsCount = useWishlistStore((s) => s.items.length);
     const openCart = useCartStore((s) => s.openCart);
 
     useEffect(() => {
@@ -32,6 +35,9 @@ export default function Navbar() {
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    const isDarkHeaderPage = pathname === '/' || pathname === '/shop' || pathname === '/about';
+    const useDarkText = scrolled || !isDarkHeaderPage;
 
     return (
         <>
@@ -58,7 +64,7 @@ export default function Navbar() {
                                 />
                             </div>
                             <span
-                                className={`text-lg md:text-xl font-bold tracking-tight transition-colors duration-300 ${scrolled ? 'text-neutral-900' : 'text-white'
+                                className={`hidden md:inline text-lg md:text-xl font-bold tracking-tight transition-colors duration-300 ${useDarkText ? 'text-neutral-900' : 'text-white'
                                     }`}
                             >
                                 High Tech Wood
@@ -71,7 +77,7 @@ export default function Navbar() {
                                 <Link
                                     key={link.href}
                                     href={link.href}
-                                    className={`text-sm font-medium transition-colors duration-300 hover:text-primary-orange ${scrolled ? 'text-neutral-600' : 'text-white/80 hover:text-white'
+                                    className={`text-sm font-medium transition-colors duration-300 hover:text-primary-orange ${useDarkText ? 'text-neutral-600' : 'text-white/80 hover:text-white'
                                         }`}
                                 >
                                     {link.label}
@@ -80,21 +86,22 @@ export default function Navbar() {
                         </div>
 
                         {/* Right Icons */}
-                        <div className="flex items-center gap-3 md:gap-4 z-10">
+                        <div className="flex items-center gap-1 sm:gap-2 md:gap-4 z-10">
                             <button
                                 onClick={toggleCurrency}
-                                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 border ${scrolled
+                                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all duration-300 border flex items-center justify-center min-w-[32px] sm:min-w-[48px] ${useDarkText
                                     ? 'border-neutral-200 text-neutral-600 hover:bg-neutral-100'
                                     : 'border-white/20 text-white hover:bg-white/10'
                                     }`}
                                 aria-label="Toggle Currency"
                             >
-                                {showLbp ? 'LBP' : 'USD'}
+                                <span className="sm:hidden">{showLbp ? 'LBP' : '$'}</span>
+                                <span className="hidden sm:inline">{showLbp ? 'LBP' : 'USD'}</span>
                             </button>
 
                             <button
                                 onClick={() => setSearchOpen(!searchOpen)}
-                                className={`p-2 rounded-full transition-all duration-300 ${scrolled
+                                className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 ${useDarkText
                                     ? 'hover:bg-neutral-100 text-neutral-600'
                                     : 'hover:bg-white/10 text-white/80'
                                     }`}
@@ -104,8 +111,8 @@ export default function Navbar() {
                             </button>
 
                             <Link
-                                href="/account"
-                                className={`p-2 rounded-full transition-all duration-300 hidden md:flex ${scrolled
+                                href="/login"
+                                className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 hidden md:flex ${useDarkText
                                     ? 'hover:bg-neutral-100 text-neutral-600'
                                     : 'hover:bg-white/10 text-white/80'
                                     }`}
@@ -114,9 +121,29 @@ export default function Navbar() {
                                 <User className="w-5 h-5" />
                             </Link>
 
+                            <Link
+                                href="/wishlist"
+                                className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 relative hidden sm:flex ${useDarkText
+                                    ? 'hover:bg-neutral-100 text-neutral-600'
+                                    : 'hover:bg-white/10 text-white/80'
+                                    }`}
+                                aria-label="Wishlist"
+                            >
+                                <Heart className="w-5 h-5" />
+                                {isMounted && wishlistItemsCount > 0 && (
+                                    <motion.span
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary-orange text-white text-[10px] font-bold flex items-center justify-center border-2 border-primary-orange"
+                                    >
+                                        {wishlistItemsCount}
+                                    </motion.span>
+                                )}
+                            </Link>
+
                             <button
                                 onClick={openCart}
-                                className={`p-2 rounded-full transition-all duration-300 relative ${scrolled
+                                className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 relative ${useDarkText
                                     ? 'hover:bg-neutral-100 text-neutral-600'
                                     : 'hover:bg-white/10 text-white/80'
                                     }`}
@@ -137,7 +164,7 @@ export default function Navbar() {
                             {/* Mobile Menu Button */}
                             <button
                                 onClick={toggleMobileMenu}
-                                className={`lg:hidden p-2 rounded-full transition-all duration-300 ${scrolled
+                                className={`lg:hidden p-1.5 sm:p-2 rounded-full transition-all duration-300 ${useDarkText
                                     ? 'hover:bg-neutral-100 text-neutral-600'
                                     : 'hover:bg-white/10 text-white/80'
                                     }`}

@@ -4,19 +4,20 @@ const Product = {
     async create(data) {
         const {
             name, slug, sku, description, short_description, base_price,
-            category_id, is_configurable = false, weight_kg, dimensions_cm,
+            category_id, is_active = true, is_configurable = false,
+            is_featured = false, is_new = false, weight_kg, dimensions_cm,
             meta_title, meta_description,
         } = data;
         const { rows } = await pool.query(
             `INSERT INTO products
         (name, slug, sku, description, short_description, base_price,
-         category_id, is_configurable, weight_kg, dimensions_cm,
-         meta_title, meta_description)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+         category_id, is_active, is_configurable, is_featured, is_new,
+         weight_kg, dimensions_cm, meta_title, meta_description)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
        RETURNING *`,
             [name, slug, sku, description, short_description, base_price,
-                category_id, is_configurable, weight_kg,
-                dimensions_cm ? JSON.stringify(dimensions_cm) : null,
+                category_id, is_active, is_configurable, is_featured, is_new,
+                weight_kg, dimensions_cm ? JSON.stringify(dimensions_cm) : null,
                 meta_title, meta_description]
         );
         return rows[0];
@@ -118,8 +119,8 @@ const Product = {
         // Whitelist allowed fields to prevent SQL injection via keys
         const ALLOWED_FIELDS = [
             'name', 'slug', 'sku', 'description', 'short_description', 'base_price',
-            'category_id', 'is_active', 'is_configurable', 'weight_kg', 'dimensions_cm',
-            'meta_title', 'meta_description'
+            'category_id', 'is_active', 'is_configurable', 'is_featured', 'is_new',
+            'weight_kg', 'dimensions_cm', 'meta_title', 'meta_description'
         ];
 
         const keys = Object.keys(fields).filter(k => ALLOWED_FIELDS.includes(k));

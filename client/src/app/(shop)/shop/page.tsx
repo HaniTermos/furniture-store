@@ -67,7 +67,7 @@ export default function ShopPage() {
         }
 
         return filtered;
-    }, [searchQuery, selectedCategory, sortBy]);
+    }, [products, searchQuery, selectedCategory, sortBy]);
 
     return (
         <>
@@ -91,9 +91,9 @@ export default function ShopPage() {
             {/* Toolbar */}
             <section className="sticky top-16 md:top-20 z-30 bg-white border-b border-neutral-100 shadow-sm">
                 <div className="container-wide section-padding">
-                    <div className="flex items-center justify-between gap-4 py-4">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 py-4">
                         {/* Search */}
-                        <div className="relative flex-1 max-w-md">
+                        <div className="relative w-full sm:flex-1 sm:max-w-md">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                             <input
                                 type="text"

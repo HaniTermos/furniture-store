@@ -22,6 +22,16 @@ const productController = {
                 minPrice: min_price ? parseFloat(min_price) : undefined,
                 maxPrice: max_price ? parseFloat(max_price) : undefined,
             });
+
+            if (result.products.length > 0) {
+                const productIds = result.products.map(p => p.id);
+                const optionsMap = await ConfigurationOption.findWithValuesByProductIds(productIds);
+                result.products = result.products.map(p => ({
+                    ...p,
+                    configuration_options: optionsMap[p.id] || []
+                }));
+            }
+
             res.json(result);
         } catch (error) {
             next(error);
@@ -35,6 +45,15 @@ const productController = {
         try {
             const limit = parseInt(req.query.limit) || 8;
             const products = await Product.getFeatured(limit);
+
+            if (products.length > 0) {
+                const productIds = products.map(p => p.id);
+                const optionsMap = await ConfigurationOption.findWithValuesByProductIds(productIds);
+                for (let p of products) {
+                    p.configuration_options = optionsMap[p.id] || [];
+                }
+            }
+
             res.json({ products });
         } catch (error) {
             next(error);

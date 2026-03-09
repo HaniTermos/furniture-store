@@ -27,6 +27,8 @@ const userRoutes = require('./routes/users');
 const adminRoutes = require('./routes/admin');
 const reviewRoutes = require('./routes/reviews');
 const categoryRoutes = require('./routes/categories');
+const invitationRoutes = require('./routes/invitations');
+const contactRoutes = require('./routes/contact');
 
 // ─── Create Express App ─────────────────────────────────────
 const app = express();
@@ -198,6 +200,12 @@ app.use('/api/designs', designRoutes);
 
 // Configurator with specific limiting
 app.use('/api/configurator', configuratorLimiter, configuratorRoutes);
+
+// Invitations (Public verify/accept + Admin invite)
+app.use('/api/invitations', invitationRoutes);
+
+// Contact Form
+app.use('/api/contact', contactRoutes);
 
 // Admin-only routes
 app.use('/api/users', userRoutes);

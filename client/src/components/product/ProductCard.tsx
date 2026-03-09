@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -7,6 +8,7 @@ import { ShoppingCart, Heart, ArrowUpRight } from 'lucide-react';
 import { Product } from '@/types';
 import { useCurrency } from '@/hooks/useCurrency';
 import { useCartStore } from '@/store/cart';
+import { useWishlistStore } from '@/store/wishlist';
 
 interface ProductCardProps {
     product: Product;
@@ -16,6 +18,18 @@ interface ProductCardProps {
 export default function ProductCard({ product, index = 0 }: ProductCardProps) {
     const { formatPrice } = useCurrency();
     const addItem = useCartStore((s) => s.addItem);
+    const { addItem: addWishlist, removeItem: removeWishlist, isInWishlist } = useWishlistStore();
+    const inWishlist = isInWishlist(product.id);
+    const [hoveredImage, setHoveredImage] = useState<string | null>(null);
+
+    const toggleWishlist = (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (inWishlist) {
+            removeWishlist(product.id);
+        } else {
+            addWishlist(product);
+        }
+    };
 
     return (
         <motion.div
@@ -23,13 +37,13 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-50px' }}
             transition={{ duration: 0.6, delay: index * 0.1, ease: [0.19, 1, 0.22, 1] }}
-            className="group"
+            className="group h-full flex"
         >
-            <Link href={`/shop/${product.slug}`} className="block">
+            <Link href={`/shop/${product.slug}`} className="flex flex-col w-full h-full">
                 {/* Image */}
-                <div className="relative aspect-[4/5] bg-neutral-100 rounded-2xl overflow-hidden mb-4">
+                <div className="relative aspect-[4/5] bg-neutral-100 rounded-2xl overflow-hidden mb-4 shrink-0">
                     <Image
-                        src={product.images[0]?.url || '/images/placeholder.png'}
+                        src={hoveredImage || product.images[0]?.url || '/images/placeholder.png'}
                         alt={product.name}
                         fill
                         className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out-expo"
@@ -65,50 +79,61 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                         </motion.button>
                         <motion.button
                             whileTap={{ scale: 0.95 }}
-                            onClick={(e) => {
-                                e.preventDefault();
-                                alert('Added to wishlist!');
-                            }}
-                            className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors duration-200"
-                            aria-label="Add to wishlist"
+                            onClick={toggleWishlist}
+                            className={`w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors duration-200 ${inWishlist ? 'text-red-500' : ''}`}
+                            aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
                         >
-                            <Heart className="w-4 h-4" />
+                            <Heart className={`w-4 h-4 ${inWishlist ? 'fill-current' : ''}`} />
                         </motion.button>
                     </div>
                 </div>
 
                 {/* Info */}
-                <div className="space-y-1.5">
+                <div className="flex flex-col flex-1 space-y-1.5">
                     <div className="flex items-start justify-between gap-2">
                         <h3 className="font-medium text-neutral-900 group-hover:text-primary-orange transition-colors duration-200 line-clamp-1">
                             {product.name}
                         </h3>
                         <ArrowUpRight className="w-4 h-4 text-neutral-300 group-hover:text-primary-orange transition-colors duration-200 flex-shrink-0 mt-1" />
                     </div>
-                    <p className="text-sm text-neutral-500 line-clamp-1">{product.shortDescription}</p>
-                    <div className="flex items-center gap-2">
-                        <span className="font-semibold text-neutral-900">
-                            {formatPrice(product.price).display}
-                        </span>
-                        {product.originalPrice && (
-                            <span className="text-sm text-neutral-400 line-through">
-                                {formatPrice(product.originalPrice).display}
+                    <div className="mt-auto pt-2 space-y-2">
+                        <div className="flex items-center gap-2">
+                            <span className="font-semibold text-neutral-900">
+                                {formatPrice(product.price).display}
                             </span>
+                            {product.originalPrice && (
+                                <span className="text-sm text-neutral-400 line-through">
+                                    {formatPrice(product.originalPrice).display}
+                                </span>
+                            )}
+                        </div>
+                        {/* Interactive Color swatches (Only show if there are multiple options) */}
+                        {product.colors.length > 1 && (
+                            <div className="flex items-center gap-1.5 pt-2 relative z-10">
+                                {product.colors.slice(0, 5).map((color) => (
+                                    <button
+                                        key={color.id}
+                                        onMouseEnter={() => {
+                                            if (color.image) setHoveredImage(color.image);
+                                        }}
+                                        onMouseLeave={() => setHoveredImage(null)}
+                                        onClick={(e) => {
+                                            e.preventDefault(); // Stop Link navigation
+                                        }}
+                                        className="w-4 h-4 rounded-full border border-neutral-200 shadow-sm transition-transform hover:scale-125 focus:outline-none"
+                                        style={{ backgroundColor: color.hex }}
+                                        title={color.name}
+                                        aria-label={`View ${color.name}`}
+                                    />
+                                ))}
+                                {product.colors.length > 5 && (
+                                    <span className="text-[10px] text-neutral-400 font-medium ml-1">
+                                        +{product.colors.length - 5}
+                                    </span>
+                                )}
+                            </div>
                         )}
                     </div>
-                    {/* Color swatches */}
-                    {product.colors.length > 0 && (
-                        <div className="flex gap-1.5 pt-1">
-                            {product.colors.slice(0, 5).map((color) => (
-                                <span
-                                    key={color.id}
-                                    className="w-3.5 h-3.5 rounded-full border border-neutral-200"
-                                    style={{ backgroundColor: color.hex }}
-                                    title={color.name}
-                                />
-                            ))}
-                        </div>
-                    )}
                 </div>
             </Link>
         </motion.div>

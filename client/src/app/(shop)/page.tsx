@@ -1,9 +1,10 @@
 'use client';
 
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { ArrowRight, ArrowUpRight, ChevronDown } from 'lucide-react';
+import { motion, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
+import { ArrowRight, ArrowUpRight, ChevronDown, Play, Volume2, VolumeX } from 'lucide-react';
 import { Reveal, StaggerContainer, StaggerChild, CountUp } from '@/components/motion/Reveal';
 import ProductCard from '@/components/product/ProductCard';
 import { useQuery } from '@tanstack/react-query';
@@ -16,6 +17,8 @@ const stats = [
     { value: 150, suffix: '+', label: 'Collections Served' },
 ];
 
+const heroWords = ['Harmony', 'Comfort', 'Style'];
+
 export default function HomePage() {
     const { data, isLoading } = useQuery({
         queryKey: ['featuredProducts'],
@@ -23,134 +26,202 @@ export default function HomePage() {
     });
 
     const featuredProducts = data?.products || [];
+    const [currentWord, setCurrentWord] = useState(0);
+    const [isMuted, setIsMuted] = useState(true);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const heroRef = useRef<HTMLElement>(null);
+
+    // Parallax on scroll
+    const { scrollYProgress } = useScroll({
+        target: heroRef,
+        offset: ['start start', 'end start']
+    });
+    const videoY = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
+    const contentOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+    const contentY = useTransform(scrollYProgress, [0, 0.5], [0, -80]);
+
+    // Mouse parallax
+    const mouseX = useMotionValue(0);
+    const mouseY = useMotionValue(0);
+    const springX = useSpring(mouseX, { stiffness: 50, damping: 20 });
+    const springY = useSpring(mouseY, { stiffness: 50, damping: 20 });
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentWord((prev) => (prev + 1) % heroWords.length);
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
+        const y = (e.clientY - rect.top - rect.height / 2) / rect.height;
+        mouseX.set(x * 30);
+        mouseY.set(y * 30);
+    };
+
+    const toggleMute = () => {
+        if (videoRef.current) {
+            videoRef.current.muted = !videoRef.current.muted;
+            setIsMuted(!isMuted);
+        }
+    };
 
     return (
         <>
             {/* ===== HERO SECTION ===== */}
-            <section className="relative min-h-screen flex items-center bg-primary-black overflow-hidden">
-                {/* Background Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 via-primary-black to-neutral-800" />
+            <section
+                ref={heroRef}
+                className="relative min-h-screen flex items-center justify-center bg-primary-black overflow-hidden"
+                onMouseMove={handleMouseMove}
+            >
+                {/* Background Video — BRIGHTER */}
+                <motion.div className="absolute inset-0 z-0" style={{ y: videoY }}>
+                    <video
+                        ref={videoRef}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="w-full h-full object-cover scale-110"
+                        style={{ filter: 'brightness(0.7) contrast(1.05) saturate(1.3)' }}
+                    >
+                        <source src="/videos/hero-bg.mp4" type="video/mp4" />
+                    </video>
+                    {/* Subtle gradient overlays */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/70" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20" />
+                </motion.div>
 
-                {/* Decorative Large Typography */}
-                <div className="absolute bottom-0 left-0 right-0 overflow-hidden pointer-events-none select-none">
+                {/* Animated Floating Particles */}
+                <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
+                    {[...Array(8)].map((_, i) => (
+                        <motion.div
+                            key={i}
+                            className="absolute rounded-full"
+                            style={{
+                                left: `${10 + i * 12}%`,
+                                top: `${15 + (i % 4) * 20}%`,
+                                width: i % 3 === 0 ? 6 : 3,
+                                height: i % 3 === 0 ? 6 : 3,
+                                background: i % 2 === 0 ? 'rgba(249, 115, 22, 0.4)' : 'rgba(255, 255, 255, 0.15)',
+                            }}
+                            animate={{
+                                y: [0, -40, 0],
+                                x: [0, i % 2 === 0 ? 15 : -15, 0],
+                                opacity: [0.1, 0.5, 0.1],
+                            }}
+                            transition={{
+                                duration: 4 + i * 0.7,
+                                repeat: Infinity,
+                                delay: i * 0.5,
+                                ease: 'easeInOut',
+                            }}
+                        />
+                    ))}
+                </div>
+
+                {/* Giant Background Text */}
+                <div className="absolute bottom-0 left-0 right-0 overflow-hidden pointer-events-none select-none z-[1]">
                     <motion.h2
                         initial={{ y: 100, opacity: 0 }}
-                        animate={{ y: 0, opacity: 0.06 }}
+                        animate={{ y: 0, opacity: 0.05 }}
                         transition={{ duration: 1.2, delay: 0.3, ease: [0.19, 1, 0.22, 1] }}
-                        className="text-[20vw] font-bold text-white leading-none tracking-tighter whitespace-nowrap"
+                        className="text-[18vw] font-bold text-white leading-none tracking-tighter whitespace-nowrap"
                     >
                         harmony
                     </motion.h2>
                 </div>
 
-                {/* Hero Content */}
-                <div className="relative container-wide section-padding py-32 md:py-0 w-full">
-                    <div className="grid lg:grid-cols-2 gap-12 items-center min-h-screen pt-20">
-                        {/* Left Column */}
-                        <div className="space-y-8 z-10">
-                            {/* Product Thumbnails */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.6, delay: 0.2 }}
-                                className="flex items-center gap-3"
-                            >
-                                {[1, 2, 3].map((i) => (
-                                    <div
-                                        key={i}
-                                        className={`w-14 h-14 rounded-xl overflow-hidden border-2 transition-colors cursor-pointer ${i === 1 ? 'border-primary-orange' : 'border-white/20 hover:border-white/40'
-                                            }`}
-                                    >
-                                        <div className="w-full h-full bg-neutral-700 flex items-center justify-center">
-                                            <span className="text-white/40 text-[10px] font-medium">0{i}</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </motion.div>
-
-                            {/* Description */}
-                            <motion.p
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.6, delay: 0.4 }}
-                                className="text-white/60 text-sm md:text-base max-w-md leading-relaxed"
-                            >
-                                Your journey to a calm, beautifully organized, and perfectly nested home begins here.
-                            </motion.p>
-
-                            {/* CTA */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.6, delay: 0.5 }}
-                            >
-                                <Link href="/shop" className="btn-primary text-sm">
-                                    Get Your Furniture Now
-                                    <ArrowUpRight className="w-4 h-4" />
-                                </Link>
-                            </motion.div>
-
-                            {/* Stats */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.6, delay: 0.6 }}
-                                className="flex gap-8 md:gap-12 pt-4"
-                            >
-                                {stats.map((stat, idx) => (
-                                    <div key={idx}>
-                                        <div className="text-3xl md:text-4xl font-bold text-white">
-                                            <CountUp end={stat.value} suffix={stat.suffix} />
-                                        </div>
-                                        <p className="text-white/40 text-xs md:text-sm mt-1">{stat.label}</p>
-                                    </div>
-                                ))}
-                            </motion.div>
-                        </div>
-
-                        {/* Right Column - Chair Image */}
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 1, delay: 0.3, ease: [0.19, 1, 0.22, 1] }}
-                            className="relative flex items-center justify-center"
-                        >
-                            <div className="relative w-full max-w-lg aspect-square">
-                                {/* Orange glow behind chair */}
-                                <div className="absolute inset-0 bg-primary-orange/20 rounded-full blur-[100px] scale-75" />
-                                <Image
-                                    src="/images/products/chair-orange-1.png"
-                                    alt="Luna Liven Lounge Chair"
-                                    fill
-                                    className="object-contain z-10 drop-shadow-2xl"
-                                    priority
-                                />
-                            </div>
-
-                            {/* Category tags below image */}
-                            <div className="absolute bottom-4 left-0 right-0 flex justify-between px-8 z-10">
-                                {['Serene', 'Cozy', 'Effortless'].map((tag) => (
-                                    <span key={tag} className="text-white/40 text-sm font-medium">
-                                        {tag}
-                                    </span>
-                                ))}
-                            </div>
-                        </motion.div>
-                    </div>
-                </div>
-
-                {/* Scroll Indicator */}
+                {/* ===== CENTERED HERO CONTENT ===== */}
                 <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.5 }}
-                    className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
+                    className="relative z-[2] text-center max-w-5xl mx-auto px-6"
+                    style={{ opacity: contentOpacity, y: contentY }}
                 >
+                    {/* Main Headline */}
                     <motion.div
-                        animate={{ y: [0, 8, 0] }}
-                        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                        initial={{ opacity: 0, y: 40 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.2, ease: [0.19, 1, 0.22, 1] }}
+                        className="mt-20 md:mt-24"
                     >
-                        <ChevronDown className="w-6 h-6 text-white/40" />
+                        <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-7xl xl:text-8xl font-bold text-white leading-[1] tracking-tight">
+                            Discover
+                            <br />
+                            Your{' '}
+                            <span className="relative inline-block">
+                                <motion.span
+                                    key={currentWord}
+                                    initial={{ y: 80, opacity: 0, rotateX: -45 }}
+                                    animate={{ y: 0, opacity: 1, rotateX: 0 }}
+                                    exit={{ y: -80, opacity: 0, rotateX: 45 }}
+                                    transition={{ duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
+                                    className="text-transparent bg-clip-text bg-gradient-to-r from-primary-orange via-amber-400 to-primary-orange inline-block"
+                                >
+                                    {heroWords[currentWord]}
+                                </motion.span>
+                                <motion.div
+                                    key={`line-${currentWord}`}
+                                    initial={{ scaleX: 0 }}
+                                    animate={{ scaleX: 1 }}
+                                    transition={{ duration: 0.8, delay: 0.4, ease: [0.19, 1, 0.22, 1] }}
+                                    className="absolute -bottom-2 left-0 right-0 h-1.5 bg-gradient-to-r from-primary-orange to-amber-400 rounded-full origin-left"
+                                />
+                            </span>
+                        </h1>
+                    </motion.div>
+
+                    {/* Subheading */}
+                    <motion.p
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.5 }}
+                        className="text-white/60 text-sm sm:text-base md:text-xl max-w-2xl mx-auto mt-6 md:mt-8 leading-relaxed"
+                    >
+                        Furniture that transforms spaces into experiences. Crafted with intention, designed for living.
+                    </motion.p>
+
+                    {/* CTA Buttons — Centered */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.6 }}
+                        className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-5 mt-8 md:mt-10"
+                    >
+                        <Link href="/shop" className="btn-primary text-sm sm:text-base px-6 sm:px-8 py-3 sm:py-4 group w-full sm:w-auto justify-center">
+                            Explore Collection
+                            <ArrowUpRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                        </Link>
+                        <Link
+                            href="/about"
+                            className="text-white/60 text-sm font-medium hover:text-white transition-colors flex items-center gap-3 group"
+                        >
+                            <span className="w-12 h-12 rounded-full border-2 border-white/20 flex items-center justify-center group-hover:border-primary-orange group-hover:bg-primary-orange/10 transition-all">
+                                <Play className="w-4 h-4 ml-0.5" />
+                            </span>
+                            Watch Our Story
+                        </Link>
+                    </motion.div>
+
+                    {/* Glassmorphism Stats Bar */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.8 }}
+                        className="flex bg-white/[0.07] backdrop-blur-2xl rounded-2xl border border-white/10 overflow-hidden mt-10 md:mt-14 max-w-xl mx-auto"
+                    >
+                        {stats.map((stat, idx) => (
+                            <div
+                                key={idx}
+                                className={`flex-1 py-4 sm:py-6 px-3 sm:px-4 text-center ${idx !== stats.length - 1 ? 'border-r border-white/10' : ''}`}
+                            >
+                                <div className="text-xl sm:text-2xl md:text-3xl font-bold text-white">
+                                    <CountUp end={stat.value} suffix={stat.suffix} />
+                                </div>
+                                <p className="text-white/40 text-[9px] md:text-[10px] mt-1.5 uppercase tracking-[0.15em] font-medium">{stat.label}</p>
+                            </div>
+                        ))}
                     </motion.div>
                 </motion.div>
             </section>
@@ -212,13 +283,16 @@ export default function HomePage() {
                             <StaggerChild key={cat.id}>
                                 <Link href={`/shop?category=${cat.slug}`} className="group block">
                                     <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100 mb-3">
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
-                                        <div className="absolute inset-0 bg-neutral-200 flex items-center justify-center">
-                                            <span className="text-neutral-400 text-sm">{cat.name}</span>
-                                        </div>
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10 transition-opacity group-hover:opacity-80" />
+                                        <Image
+                                            src={cat.image}
+                                            alt={cat.name}
+                                            fill
+                                            className="object-cover transition-transform duration-700 group-hover:scale-110"
+                                        />
                                         <div className="absolute bottom-4 left-4 z-20">
                                             <h3 className="text-white font-semibold text-lg">{cat.name}</h3>
-                                            <p className="text-white/60 text-sm">{cat.productCount} items</p>
+                                            <p className="text-white/80 text-sm font-medium">{cat.productCount} items</p>
                                         </div>
                                     </div>
                                 </Link>

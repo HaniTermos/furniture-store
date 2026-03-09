@@ -120,6 +120,14 @@ class ApiClient {
         return res;
     }
 
+    async register(data: { name: string; email: string; password: string }): Promise<{ token: string, user: any, message: string }> {
+        const res = await this.fetch<any>('/auth/register', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+        return res;
+    }
+
     // Admin Dashboard
     async getAdminDashboard(): Promise<any> {
         return this.fetch<any>('/admin/dashboard');
@@ -167,6 +175,58 @@ class ApiClient {
         return this.fetch<any>(`/users/${id}/status`, {
             method: 'PUT',
             body: JSON.stringify({ is_active })
+        });
+    }
+
+    // Invitations
+    async inviteUser(data: { email: string; name: string; role: string }): Promise<any> {
+        return this.fetch<any>('/invitations/invite', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async verifyInvitation(token: string): Promise<any> {
+        return this.fetch<any>(`/invitations/verify/${token}`);
+    }
+
+    async acceptInvitation(data: { token: string; password: string }): Promise<any> {
+        return this.fetch<any>('/invitations/accept', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    // Product images
+    async uploadProductImage(productId: string, formData: FormData): Promise<any> {
+        const token = useAppStore.getState().token;
+        const res = await fetch(`${API_URL}/products/${productId}/images`, {
+            method: 'POST',
+            headers: {
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: formData,
+        });
+
+        if (!res.ok) {
+            throw new Error(`API Error: ${res.statusText}`);
+        }
+
+        return res.json();
+    }
+
+    // Configuration Options (Swatches)
+    async createConfigurationOption(data: { product_id: string; name: string; type: string; is_required?: boolean; sort_order?: number }): Promise<any> {
+        return this.fetch<any>('/admin/config-options', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async createConfigurationValue(data: { option_id: string; value: string; price_adjustment?: number; image_url?: string }): Promise<any> {
+        return this.fetch<any>('/admin/config-values', {
+            method: 'POST',
+            body: JSON.stringify(data),
         });
     }
 }

@@ -16,8 +16,10 @@ export default function AccountPage() {
     const { user, logout } = useAppStore();
 
     return (
-        <>
-            <div className="h-20" />
+        <main className="min-h-screen bg-white">
+            {/* Dark Hero Spacer */}
+            <div className="h-20 bg-primary-black w-full" />
+
             <section className="py-12 md:py-16">
                 <div className="container-wide section-padding max-w-3xl mx-auto">
                     <Reveal>
@@ -82,6 +84,6 @@ export default function AccountPage() {
                     )}
                 </div>
             </section>
-        </>
+        </main>
     );
 }

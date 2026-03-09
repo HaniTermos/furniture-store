@@ -59,6 +59,31 @@ const ConfigurationOption = {
         }
         return options;
     },
+
+    async findWithValuesByProductIds(productIds) {
+        if (!productIds || productIds.length === 0) return {};
+
+        const { rows: options } = await pool.query(
+            `SELECT * FROM configuration_options WHERE product_id = ANY($1::uuid[]) ORDER BY sort_order ASC`,
+            [productIds]
+        );
+
+        if (options.length === 0) return {};
+
+        const optionIds = options.map(o => o.id);
+        const { rows: values } = await pool.query(
+            `SELECT * FROM configuration_values WHERE option_id = ANY($1::uuid[]) ORDER BY created_at ASC`,
+            [optionIds]
+        );
+
+        const optionsMap = {};
+        for (const opt of options) {
+            opt.values = values.filter(v => v.option_id === opt.id);
+            if (!optionsMap[opt.product_id]) optionsMap[opt.product_id] = [];
+            optionsMap[opt.product_id].push(opt);
+        }
+        return optionsMap;
+    }
 };
 
 module.exports = ConfigurationOption;

@@ -3,6 +3,8 @@ const Order = require('../models/Order');
 const User = require('../models/User');
 const Category = require('../models/Category');
 const Review = require('../models/Review');
+const ConfigurationOption = require('../models/ConfigurationOption');
+const ConfigurationValue = require('../models/ConfigurationValue');
 
 const adminController = {
     /**
@@ -194,6 +196,30 @@ const adminController = {
                 return res.status(404).json({ error: 'Category not found.' });
             }
             res.json({ message: 'Category deleted.' });
+        } catch (error) {
+            next(error);
+        }
+    },
+
+    /**
+     * POST /api/admin/config-options
+     */
+    async createConfigurationOption(req, res, next) {
+        try {
+            const option = await ConfigurationOption.create(req.body);
+            res.status(201).json(option);
+        } catch (error) {
+            next(error);
+        }
+    },
+
+    /**
+     * POST /api/admin/config-values
+     */
+    async createConfigurationValue(req, res, next) {
+        try {
+            const value = await ConfigurationValue.create(req.body);
+            res.status(201).json(value);
         } catch (error) {
             next(error);
         }

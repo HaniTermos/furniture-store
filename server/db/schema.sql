@@ -41,6 +41,8 @@ CREATE TABLE IF NOT EXISTS products (
     is_configurable BOOLEAN DEFAULT false,
     weight_kg DECIMAL(8, 2),
     dimensions_cm JSONB,
+    is_featured BOOLEAN DEFAULT false,
+    is_new BOOLEAN DEFAULT false,
     meta_title VARCHAR(255),
     meta_description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -198,6 +200,17 @@ CREATE TABLE IF NOT EXISTS reviews (
     comment TEXT,
     is_verified_purchase BOOLEAN DEFAULT false,
     is_approved BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+-- Invitations
+CREATE TABLE IF NOT EXISTS invitations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(255),
+    role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('admin', 'manager', 'user')),
+    token VARCHAR(255) UNIQUE NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    is_used BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 -- Indexes

@@ -56,4 +56,19 @@ const optionalAuth = async (req, res, next) => {
     }
 };
 
-module.exports = { auth, optionalAuth };
+// Role-based auth
+const adminOnly = (req, res, next) => {
+    if (req.user && req.user.role === 'admin') {
+        return next();
+    }
+    return res.status(403).json({ error: 'Access denied. Admin rights required.' });
+};
+
+const managerOnly = (req, res, next) => {
+    if (req.user && (req.user.role === 'admin' || req.user.role === 'manager')) {
+        return next();
+    }
+    return res.status(403).json({ error: 'Access denied. Manager or Admin rights required.' });
+};
+
+module.exports = { auth, optionalAuth, adminOnly, managerOnly };

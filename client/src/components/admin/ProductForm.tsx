@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { Loader2, ArrowLeft, Save } from 'lucide-react';
+import Image from 'next/image';
+import { Loader2, ArrowLeft, Save, Plus, X, Upload, Image as ImageIcon, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
 interface ProductFormProps {
@@ -18,6 +20,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
     const [formData, setFormData] = useState({
         name: initialData?.name || '',
         slug: initialData?.slug || '',
+        sku: initialData?.sku || '',
         description: initialData?.description || '',
         short_description: initialData?.shortDescription || '',
         base_price: initialData?.price || '',
@@ -29,6 +32,11 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
         meta_title: initialData?.meta_title || '',
         meta_description: initialData?.meta_description || ''
     });
+
+    const [images, setImages] = useState<File[]>([]);
+    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    const [swatches, setSwatches] = useState<any[]>(initialData?.configuration_options || []);
+    const [isSaving, setIsSaving] = useState(false);
 
     const { data: categories } = useQuery({
         queryKey: ['categories'],
@@ -70,9 +78,114 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
         }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const newFiles = Array.from(e.target.files);
+            setImages(prev => [...prev, ...newFiles]);
+
+            const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+            setImagePreviews(prev => [...prev, ...newPreviews]);
+        }
+    };
+
+    const removeImage = (index: number) => {
+        setImages(prev => prev.filter((_, i) => i !== index));
+        setImagePreviews(prev => {
+            const newPreviews = [...prev];
+            URL.revokeObjectURL(newPreviews[index]);
+            return newPreviews.filter((_, i) => i !== index);
+        });
+    };
+
+    const addSwatch = () => {
+        setSwatches(prev => [...prev, { name: 'New Option', type: 'color', values: [{ value: '', price_adjustment: 0 }] }]);
+    };
+
+    const updateSwatch = (index: number, field: string, value: any) => {
+        const newSwatches = [...swatches];
+        newSwatches[index][field] = value;
+        setSwatches(newSwatches);
+    };
+
+    const removeSwatch = (index: number) => {
+        setSwatches(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const addSwatchValue = (swatchIndex: number) => {
+        const newSwatches = [...swatches];
+        newSwatches[swatchIndex].values.push({ value: '', price_adjustment: 0 });
+        setSwatches(newSwatches);
+    };
+
+    const updateSwatchValue = (swatchIndex: number, valueIndex: number, field: string, value: any) => {
+        const newSwatches = [...swatches];
+        newSwatches[swatchIndex].values[valueIndex][field] = value;
+        setSwatches(newSwatches);
+    };
+
+    const removeSwatchValue = (swatchIndex: number, valueIndex: number) => {
+        const newSwatches = [...swatches];
+        newSwatches[swatchIndex].values = newSwatches[swatchIndex].values.filter((_: any, i: number) => i !== valueIndex);
+        setSwatches(newSwatches);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        mutation.mutate(formData);
+        setIsSaving(true);
+
+        try {
+            const payload = {
+                ...formData,
+                base_price: Number(formData.base_price),
+                weight_kg: formData.weight_kg ? Number(formData.weight_kg) : null,
+                is_configurable: swatches.length > 0
+            };
+
+            let productId = initialData?.id;
+
+            if (isEditing && productId) {
+                await api.updateProduct(productId, payload);
+            } else {
+                const res = await api.createProduct(payload);
+                productId = res.product.id;
+            }
+
+            // Handle Images
+            for (const image of images) {
+                const imgFormData = new FormData();
+                imgFormData.append('image', image);
+                imgFormData.append('alt_text', formData.name);
+                await api.uploadProductImage(productId, imgFormData);
+            }
+
+            // Handle Swatches (Config Options)
+            // Note: Simplistic implementation for now - creating new each time if not present
+            if (!isEditing) {
+                for (const swatch of swatches) {
+                    const option = await api.createConfigurationOption({
+                        product_id: productId,
+                        name: swatch.name,
+                        type: swatch.type,
+                        is_required: true
+                    });
+
+                    for (const val of swatch.values) {
+                        await api.createConfigurationValue({
+                            option_id: option.id,
+                            value: val.value,
+                            price_adjustment: Number(val.price_adjustment) || 0
+                        });
+                    }
+                }
+            }
+
+            router.push('/admin/products');
+            router.refresh();
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -89,10 +202,10 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                 </div>
                 <button
                     type="submit"
-                    disabled={mutation.isPending}
+                    disabled={isSaving}
                     className="btn-primary flex items-center gap-2 disabled:opacity-50"
                 >
-                    {mutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                     <span>{isEditing ? 'Save Changes' : 'Create Product'}</span>
                 </button>
             </div>
@@ -117,6 +230,11 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                         <div className="grid gap-2">
                             <label className="text-sm font-medium">URL Slug <span className="text-red-500">*</span></label>
                             <input required name="slug" value={formData.slug} onChange={handleChange} className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-orange transition-all" placeholder="e.g. modern-lounge-chair" />
+                        </div>
+
+                        <div className="grid gap-2">
+                            <label className="text-sm font-medium">Product SKU <span className="text-red-500">*</span></label>
+                            <input required name="sku" value={formData.sku} onChange={handleChange} className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-orange transition-all" placeholder="e.g. CHR-MOD-01" />
                         </div>
 
                         <div className="grid gap-2">
@@ -184,6 +302,119 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                                 <input type="checkbox" name="is_new" checked={formData.is_new} onChange={handleChange} className="w-4 h-4 text-primary-orange accent-primary-orange border-neutral-300 rounded" />
                                 <span className="text-sm font-medium">Mark as New</span>
                             </label>
+                        </div>
+                    </div>
+
+                    {/* Images Section */}
+                    <div className="bg-white p-6 rounded-2xl border border-neutral-100 space-y-4 shadow-sm">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-semibold">Product Images</h2>
+                            <label className="cursor-pointer bg-neutral-100 hover:bg-neutral-200 p-2 rounded-xl transition-colors">
+                                <Plus className="w-5 h-5 text-neutral-600" />
+                                <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
+                            </label>
+                        </div>
+
+                        {imagePreviews.length > 0 ? (
+                            <div className="grid grid-cols-2 gap-4">
+                                {imagePreviews.map((preview, idx) => (
+                                    <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden group border border-neutral-100">
+                                        <Image src={preview} alt="Preview" fill className="object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeImage(idx)}
+                                            className="absolute top-2 right-2 p-1.5 bg-white/90 backdrop-blur rounded-lg shadow-sm text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="aspect-video bg-neutral-50 border-2 border-dashed border-neutral-200 rounded-2xl flex flex-col items-center justify-center text-neutral-400">
+                                <ImageIcon className="w-8 h-8 mb-2" />
+                                <p className="text-xs font-medium">No images uploaded yet</p>
+                            </div>
+                        )}
+                        <p className="text-[10px] text-neutral-400">Recommended: 1200x1200px, PNG or JPG</p>
+                    </div>
+
+                    {/* Swatches (Configuration Options) */}
+                    <div className="bg-white p-6 rounded-2xl border border-neutral-100 space-y-4 shadow-sm">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-semibold">Product Swatches</h2>
+                            <button type="button" onClick={addSwatch} className="p-2 hover:bg-neutral-100 rounded-xl transition-colors">
+                                <Plus className="w-5 h-5 text-neutral-600" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-6">
+                            {swatches.map((swatch, sIdx) => (
+                                <div key={sIdx} className="p-4 border border-neutral-200 rounded-2xl space-y-4 relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => removeSwatch(sIdx)}
+                                        className="absolute top-4 right-4 text-red-400 hover:text-red-500 transition-colors"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+
+                                    <div className="grid gap-4">
+                                        <div className="grid gap-1.5">
+                                            <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Option Name</label>
+                                            <input
+                                                value={swatch.name}
+                                                onChange={(e) => updateSwatch(sIdx, 'name', e.target.value)}
+                                                className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary-orange"
+                                                placeholder="e.g. Color, Size, Material"
+                                            />
+                                        </div>
+                                        <div className="grid gap-1.5">
+                                            <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Type</label>
+                                            <select
+                                                value={swatch.type}
+                                                onChange={(e) => updateSwatch(sIdx, 'type', e.target.value)}
+                                                className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary-orange appearance-none cursor-pointer"
+                                            >
+                                                <option value="color">Color Swatch</option>
+                                                <option value="size">Size Selection</option>
+                                                <option value="text">Custom Text</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Values</label>
+                                        {swatch.values?.map((val: any, vIdx: number) => (
+                                            <div key={vIdx} className="flex gap-2 items-center">
+                                                <input
+                                                    value={val.value}
+                                                    onChange={(e) => updateSwatchValue(sIdx, vIdx, 'value', e.target.value)}
+                                                    className="flex-1 bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-primary-orange"
+                                                    placeholder={swatch.type === 'color' ? 'Black|#000000' : 'Large'}
+                                                />
+                                                <input
+                                                    type="number"
+                                                    value={val.price_adjustment}
+                                                    onChange={(e) => updateSwatchValue(sIdx, vIdx, 'price_adjustment', e.target.value)}
+                                                    className="w-24 bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-primary-orange"
+                                                    placeholder="+0.00"
+                                                />
+                                                <button type="button" onClick={() => removeSwatchValue(sIdx, vIdx)} className="text-neutral-400 hover:text-red-500">
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        <button
+                                            type="button"
+                                            onClick={() => addSwatchValue(sIdx)}
+                                            className="text-primary-orange text-xs font-bold hover:underline flex items-center gap-1"
+                                        >
+                                            <Plus className="w-3 h-3" /> Add Value
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
