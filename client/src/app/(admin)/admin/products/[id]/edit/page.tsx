@@ -51,17 +51,30 @@ export default function AdminProductEditPage({ params }: { params?: { id: string
 
     // Tags & Attributes
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
-    const [productAttributes, setProductAttributes] = useState<{ attribute_id: string, value_id: string, is_variation_maker: boolean }[]>([]);
-
-    // Media
-    const [images, setImages] = useState<any[]>([]);
-
     // Validation & UX
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [isDirty, setIsDirty] = useState(false);
 
     // Track dirty state on any input change
-    const markDirty = useCallback(() => { if (!isDirty) setIsDirty(true); }, [isDirty]);
+    const markDirty = useCallback(() => setIsDirty(true), []);
+
+    // Media
+    // Media
+    const [images, setImagesState] = useState<any[]>([]);
+    // Track dirty state on any input change
+    const markDirty = useCallback(() => setIsDirty(true), []);
+
+    const setImages = useCallback((newImages: any[]) => {
+        setImagesState(newImages);
+        markDirty();
+    }, [markDirty]);
+
+    const [productAttributes, setProductAttributesState] = useState<{ attribute_id: string, value_id: string, is_variation_maker: boolean }[]>([]);
+
+    const setProductAttributes = useCallback((newAttrs: any[]) => {
+        setProductAttributesState(newAttrs);
+        markDirty();
+    }, [markDirty]);
 
     // Clear a single field error when user types
     const clearFieldError = useCallback((field: string) => {
@@ -222,7 +235,7 @@ export default function AdminProductEditPage({ params }: { params?: { id: string
     return (
         <div className="max-w-6xl mx-auto pb-20 px-4">
             {/* Header Sticky Bar */}
-            <div className="sticky top-0 z-30 bg-[#FAF9F6] bg-opacity-90 backdrop-blur-md pt-4 pb-4 mb-8 border-b border-neutral-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="sticky top-0 z-[var(--z-sticky)] bg-[#FAF9F6] bg-opacity-90 backdrop-blur-md pt-4 pb-4 mb-8 border-b border-neutral-200 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <button onClick={() => router.back()} className="p-2 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 transition-colors shadow-sm">
                         <ChevronLeft className="w-5 h-5" />

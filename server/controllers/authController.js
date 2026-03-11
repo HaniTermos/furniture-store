@@ -28,6 +28,11 @@ const authController = {
         try {
             const { email, password, name, phone } = req.body;
 
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+            if (!passwordRegex.test(password)) {
+                return res.status(400).json({ error: 'Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.' });
+            }
+
             const existing = await User.findByEmail(email);
             if (existing) {
                 return res.status(409).json({ error: 'Email already registered.' });
@@ -250,8 +255,9 @@ const authController = {
                 return res.status(400).json({ error: 'Token and new password are required.' });
             }
 
-            if (password.length < 8) {
-                return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+            if (!passwordRegex.test(password)) {
+                return res.status(400).json({ error: 'Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.' });
             }
 
             const user = await User.findByResetToken(token);

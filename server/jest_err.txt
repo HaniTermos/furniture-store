@@ -1,0 +1,66 @@
+FAIL tests/auth.test.js
+  Auth API Endpoints
+    POST /api/auth/register
+      × should register a new user successfully (459 ms)
+      × should fail if email is already registered (405 ms)
+      √ should fail validation with short password (10 ms)
+    POST /api/auth/login
+      × should login successfully with correct credentials (60 ms)
+      √ should prevent login with wrong password (12 ms)
+
+  ● Auth API Endpoints › POST /api/auth/register › should register a new user successfully
+
+    expect(received).toEqual(expected) // deep equality
+
+    Expected: 201
+    Received: 500
+
+    [0m [90m 22 |[39m                 [33m.[39msend(testUser)[33m;[39m
+     [90m 23 |[39m
+    [31m[1m>[22m[39m[90m 24 |[39m             expect(res[33m.[39mstatusCode)[33m.[39mtoEqual([35m201[39m)[33m;[39m
+     [90m    |[39m                                    [31m[1m^[22m[39m
+     [90m 25 |[39m             expect(res[33m.[39mbody)[33m.[39mtoHaveProperty([32m'user'[39m)[33m;[39m
+     [90m 26 |[39m             expect(res[33m.[39mbody[33m.[39muser)[33m.[39mtoHaveProperty([32m'email'[39m[33m,[39m testUser[33m.[39memail)[33m;[39m
+     [90m 27 |[39m             expect(res[33m.[39mbody)[33m.[39mtoHaveProperty([32m'token'[39m)[33m;[39m[0m
+
+      at Object.toEqual (tests/auth.test.js:24:36)
+
+  ● Auth API Endpoints › POST /api/auth/register › should fail if email is already registered
+
+    expect(received).toEqual(expected) // deep equality
+
+    Expected: 409
+    Received: 500
+
+    [0m [90m 33 |[39m                 [33m.[39msend(testUser)[33m;[39m
+     [90m 34 |[39m
+    [31m[1m>[22m[39m[90m 35 |[39m             expect(res[33m.[39mstatusCode)[33m.[39mtoEqual([35m409[39m)[33m;[39m
+     [90m    |[39m                                    [31m[1m^[22m[39m
+     [90m 36 |[39m             expect(res[33m.[39mbody)[33m.[39mtoHaveProperty([32m'error'[39m)[33m;[39m
+     [90m 37 |[39m         })[33m;[39m
+     [90m 38 |[39m[0m
+
+      at Object.toEqual (tests/auth.test.js:35:36)
+
+  ● Auth API Endpoints › POST /api/auth/login › should login successfully with correct credentials
+
+    expect(received).toEqual(expected) // deep equality
+
+    Expected: 200
+    Received: 401
+
+    [0m [90m 59 |[39m                 })[33m;[39m
+     [90m 60 |[39m
+    [31m[1m>[22m[39m[90m 61 |[39m             expect(res[33m.[39mstatusCode)[33m.[39mtoEqual([35m200[39m)[33m;[39m
+     [90m    |[39m                                    [31m[1m^[22m[39m
+     [90m 62 |[39m             expect(res[33m.[39mbody)[33m.[39mtoHaveProperty([32m'token'[39m)[33m;[39m
+     [90m 63 |[39m         })[33m;[39m
+     [90m 64 |[39m[0m
+
+      at Object.toEqual (tests/auth.test.js:61:36)
+
+Test Suites: 1 failed, 1 total
+Tests:       3 failed, 2 passed, 5 total
+Snapshots:   0 total
+Time:        3.685 s, estimated 5 s
+Ran all test suites matching tests/auth.test.js.

@@ -10,9 +10,9 @@ const Joi = require('joi');
 const registerSchema = Joi.object({
     email: Joi.string().email().required(),
     password: Joi.string().min(8).max(128).required()
-        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/)
         .messages({
-            'string.pattern.base': 'Password must contain at least one uppercase letter, one lowercase letter, and one number.',
+            'string.pattern.base': 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
         }),
     name: Joi.string().max(255).required(),
     phone: Joi.string().max(50).allow('', null),
@@ -31,7 +31,11 @@ const updateProfileSchema = Joi.object({
 
 const changePasswordSchema = Joi.object({
     currentPassword: Joi.string().required(),
-    newPassword: Joi.string().min(8).max(128).required(),
+    newPassword: Joi.string().min(8).max(128).required()
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/)
+        .messages({
+            'string.pattern.base': 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
+        }),
 });
 
 const forgotPasswordSchema = Joi.object({
@@ -40,7 +44,11 @@ const forgotPasswordSchema = Joi.object({
 
 const resetPasswordSchema = Joi.object({
     token: Joi.string().required(),
-    password: Joi.string().min(8).max(128).required(),
+    password: Joi.string().min(8).max(128).required()
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/)
+        .messages({
+            'string.pattern.base': 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
+        }),
 });
 
 // ─── Public Routes ──────────────────────────────────────────

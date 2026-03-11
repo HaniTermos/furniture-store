@@ -132,21 +132,21 @@ const adminController = {
 
             const { rows: revenueByDay } = await pool.query(`
                 SELECT DATE(created_at) AS date, SUM(total_amount) AS revenue, COUNT(*) AS orders
-                FROM orders WHERE created_at >= CURRENT_DATE - INTERVAL '${interval}' AND payment_status = 'completed'
+                FROM orders WHERE created_at >= CURRENT_DATE - CAST($1 AS INTERVAL) AND payment_status = 'completed'
                 GROUP BY DATE(created_at) ORDER BY date ASC
-            `);
+            `, [interval]);
 
             const { rows: ordersByStatus } = await pool.query(`
                 SELECT status, COUNT(*) as count FROM orders
-                WHERE created_at >= CURRENT_DATE - INTERVAL '${interval}'
+                WHERE created_at >= CURRENT_DATE - CAST($1 AS INTERVAL)
                 GROUP BY status
-            `);
+            `, [interval]);
 
             // Average order value
             const { rows: aov } = await pool.query(`
                 SELECT COALESCE(AVG(total_amount), 0) as aov FROM orders
-                WHERE created_at >= CURRENT_DATE - INTERVAL '${interval}' AND payment_status = 'completed'
-            `);
+                WHERE created_at >= CURRENT_DATE - CAST($1 AS INTERVAL) AND payment_status = 'completed'
+            `, [interval]);
 
             res.json({ revenueByDay, ordersByStatus, averageOrderValue: parseFloat(aov[0].aov) });
         } catch (error) {
@@ -437,12 +437,14 @@ const adminController = {
     },
 
     async createProduct(req, res, next) {
+        const client = await pool.connect();
         try {
+            await client.query('BEGIN');
             const { generateSlug } = require('../utils/generateSlug');
             const data = req.body;
             if (!data.slug) data.slug = generateSlug(data.name);
 
-            const { rows } = await pool.query(
+            const { rows } = await client.query(
                 `INSERT INTO products (name, slug, sku, description, short_description, base_price, category_id,
                  is_active, is_configurable, weight_kg, dimensions_cm, is_featured, is_new, meta_title, meta_description, size_guide_id)
                  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *`,
@@ -457,14 +459,14 @@ const adminController = {
             // Handle Tags
             if (data.tags && Array.isArray(data.tags)) {
                 for (const tagId of data.tags) {
-                    await pool.query(`INSERT INTO product_tags (product_id, tag_id) VALUES ($1, $2)`, [productId, tagId]);
+                    await client.query(`INSERT INTO product_tags (product_id, tag_id) VALUES ($1, $2)`, [productId, tagId]);
                 }
             }
 
             // Handle Global Attributes
             if (data.attributes && Array.isArray(data.attributes)) {
                 for (const attr of data.attributes) {
-                    await pool.query(
+                    await client.query(
                         `INSERT INTO product_attributes (product_id, attribute_id, value_id, is_variation_maker) VALUES ($1, $2, $3, $4)`,
                         [productId, attr.attribute_id, attr.value_id, attr.is_variation_maker || false]
                     );
@@ -481,14 +483,20 @@ const adminController = {
                 userAgent: req.headers['user-agent'],
             }).catch(() => { });
 
+            await client.query('COMMIT');
             res.status(201).json({ message: 'Product created.', product: rows[0] });
         } catch (error) {
+            await client.query('ROLLBACK');
             next(error);
+        } finally {
+            client.release();
         }
     },
 
     async updateProduct(req, res, next) {
+        const client = await pool.connect();
         try {
+            await client.query('BEGIN');
             const data = req.body;
             if (data.name) {
                 const { generateSlug } = require('../utils/generateSlug');
@@ -508,41 +516,53 @@ const adminController = {
                     return data[k];
                 });
 
-                const { rows } = await pool.query(
+                const { rows } = await client.query(
                     `UPDATE products SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *`,
                     [req.params.id, ...values]
                 );
-                if (rows.length === 0) return res.status(404).json({ error: 'Product not found.' });
+                if (rows.length === 0) {
+                    await client.query('ROLLBACK');
+                    return res.status(404).json({ error: 'Product not found.' });
+                }
                 productRow = rows[0];
             } else {
-                const { rows } = await pool.query(`SELECT * FROM products WHERE id = $1`, [req.params.id]);
-                if (rows.length === 0) return res.status(404).json({ error: 'Product not found.' });
+                const { rows } = await client.query(`SELECT * FROM products WHERE id = $1`, [req.params.id]);
+                if (rows.length === 0) {
+                    await client.query('ROLLBACK');
+                    return res.status(404).json({ error: 'Product not found.' });
+                }
                 productRow = rows[0];
             }
 
             // Sync Tags
             if (data.tags !== undefined) {
-                await pool.query(`DELETE FROM product_tags WHERE product_id = $1`, [req.params.id]);
+                await client.query(`DELETE FROM product_tags WHERE product_id = $1`, [req.params.id]);
                 if (Array.isArray(data.tags)) {
                     for (const tagId of data.tags) {
                         try {
-                            await pool.query(`INSERT INTO product_tags (product_id, tag_id) VALUES ($1, $2)`, [req.params.id, tagId]);
-                        } catch (e) { console.error('Error connecting tag', e); }
+                            await client.query(`INSERT INTO product_tags (product_id, tag_id) VALUES ($1, $2)`, [req.params.id, tagId]);
+                        } catch (e) {
+                            console.error('Error connecting tag', e);
+                            throw e;
+                        }
                     }
                 }
             }
 
             // Sync Global Attributes
             if (data.attributes !== undefined) {
-                await pool.query(`DELETE FROM product_attributes WHERE product_id = $1`, [req.params.id]);
+                await client.query(`DELETE FROM product_attributes WHERE product_id = $1`, [req.params.id]);
                 if (Array.isArray(data.attributes)) {
                     for (const attr of data.attributes) {
                         try {
-                            await pool.query(
+                            await client.query(
                                 `INSERT INTO product_attributes (product_id, attribute_id, value_id, is_variation_maker) VALUES ($1, $2, $3, $4)`,
                                 [req.params.id, attr.attribute_id, attr.value_id, attr.is_variation_maker || false]
                             );
-                        } catch (e) { console.error('Error connecting attribute', e); }
+                        } catch (e) {
+                            console.error('Error connecting attribute', e);
+                            throw e;
+                        }
                     }
                 }
             }
@@ -551,7 +571,7 @@ const adminController = {
             if (data.configurations !== undefined && Array.isArray(data.configurations)) {
                 // 1. Find or create a 'Variations' option for this product
                 let optionId;
-                const { rows: existingOptions } = await pool.query(
+                const { rows: existingOptions } = await client.query(
                     `SELECT id FROM configuration_options WHERE product_id = $1 AND name = 'Variations'`,
                     [req.params.id]
                 );
@@ -559,7 +579,7 @@ const adminController = {
                 if (existingOptions.length > 0) {
                     optionId = existingOptions[0].id;
                 } else {
-                    const { rows: newOption } = await pool.query(
+                    const { rows: newOption } = await client.query(
                         `INSERT INTO configuration_options (product_id, name, type, is_required, sort_order)
                          VALUES ($1, 'Variations', 'select', true, 0) RETURNING id`,
                         [req.params.id]
@@ -568,11 +588,11 @@ const adminController = {
                 }
 
                 // 2. Clear old values for this specific 'Variations' option
-                await pool.query(`DELETE FROM configuration_values WHERE option_id = $1`, [optionId]);
+                await client.query(`DELETE FROM configuration_values WHERE option_id = $1`, [optionId]);
 
                 // 3. Insert new values
                 for (const config of data.configurations) {
-                    await pool.query(
+                    await client.query(
                         `INSERT INTO configuration_values (option_id, value, price_adjustment, stock_quantity, stock_status)
                          VALUES ($1, $2, $3, $4, $5)`,
                         [
@@ -596,9 +616,13 @@ const adminController = {
                 userAgent: req.headers['user-agent'],
             }).catch(() => { });
 
+            await client.query('COMMIT');
             res.json({ message: 'Product updated.', product: productRow });
         } catch (error) {
+            await client.query('ROLLBACK');
             next(error);
+        } finally {
+            client.release();
         }
     },
 

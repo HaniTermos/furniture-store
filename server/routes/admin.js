@@ -13,10 +13,13 @@ const attributeController = require('../controllers/attributeController'); // Ad
 const sizeGuideController = require('../controllers/sizeGuideController');
 const { categorySchema, categoryUpdateSchema } = require('../validation/categorySchemas');
 const { orderStatusSchema } = require('../validation/orderSchemas');
+const { productSchema, productUpdateSchema } = require('../validation/productSchemas');
 const upload = require('../middleware/upload');
 
+const { adminLimiter } = require('../middleware/rateLimiter');
+
 // All admin routes require auth + admin/manager role
-router.use(auth, admin);
+router.use(auth, admin, adminLimiter);
 
 // ─── Dashboard & Analytics ──────────────────────────────────
 router.get('/dashboard', adminController.getDashboard);
@@ -24,9 +27,9 @@ router.get('/analytics/sales', adminController.getSalesAnalytics);
 
 // ─── Products ───────────────────────────────────────────────
 router.get('/products', adminController.getProducts);
-router.post('/products', adminController.createProduct);
+router.post('/products', validate(productSchema), adminController.createProduct);
 router.get('/products/:id', adminController.getProductDetail);
-router.put('/products/:id', adminController.updateProduct);
+router.put('/products/:id', validate(productUpdateSchema), adminController.updateProduct);
 router.delete('/products/:id', adminController.deleteProduct);
 router.post('/products/:id/duplicate', adminController.duplicateProduct);
 router.post('/products/bulk-delete', adminController.bulkDeleteProducts);

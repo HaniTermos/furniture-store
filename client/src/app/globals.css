@@ -16,6 +16,21 @@
   --admin-text-secondary: #737373;
   --admin-text-muted: #9CA3AF;
   --accent-orange-alpha: rgba(249, 115, 22, 0.1);
+
+  /* Z-Index System */
+  --z-negative: -1;
+  --z-elevated: 1;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-fixed: 1200;
+  --z-drawer-backdrop: 1300;
+  --z-drawer: 1400;
+  --z-modal-backdrop: 1500;
+  --z-modal: 1600;
+  --z-popover: 1700;
+  --z-tooltip: 1800;
+  --z-toast: 2000;
+  --z-search-palette: 2100;
 }
 
 .dark {
@@ -30,6 +45,8 @@
   --admin-text-secondary: #A1A1AA;
   --admin-text-muted: #52525B;
   --accent-orange-alpha: rgba(249, 115, 22, 0.15);
+
+  /* Z-Index System Inherited */
 }
 
 /* ===== Lenis Smooth Scroll ===== */
