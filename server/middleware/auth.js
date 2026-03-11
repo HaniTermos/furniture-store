@@ -1,20 +1,29 @@
+// ═══════════════════════════════════════════════════════════════
+//  middleware/auth.js — Authentication & Authorization
+//  Supports both Session (Passport) and JWT (Bearer token)
+// ═══════════════════════════════════════════════════════════════
+
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const passport = require('passport');
 
+// ─── Hybrid Auth: checks session first, then JWT ────────────
 const auth = async (req, res, next) => {
     try {
-        // Get token from header
+        // 1. If Passport session exists, use it
+        if (req.isAuthenticated && req.isAuthenticated() && req.user) {
+            return next();
+        }
+
+        // 2. Fall back to JWT from Authorization header
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({ error: 'Access denied. No token provided.' });
         }
 
         const token = authHeader.split(' ')[1];
-
-        // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // Find user
         const user = await User.findById(decoded.id);
         if (!user) {
             return res.status(401).json({ error: 'Invalid token. User not found.' });
@@ -37,9 +46,13 @@ const auth = async (req, res, next) => {
     }
 };
 
-// Optional auth — attaches user if token present, but doesn't require it
+// ─── Optional Auth (for public routes with optional user context) ──
 const optionalAuth = async (req, res, next) => {
     try {
+        if (req.isAuthenticated && req.isAuthenticated() && req.user) {
+            return next();
+        }
+
         const authHeader = req.headers.authorization;
         if (authHeader && authHeader.startsWith('Bearer ')) {
             const token = authHeader.split(' ')[1];
@@ -51,24 +64,51 @@ const optionalAuth = async (req, res, next) => {
         }
         next();
     } catch {
-        // Token invalid — proceed without user
         next();
     }
 };
 
-// Role-based auth
+// ─── Email Verified Check ───────────────────────────────────
+const isEmailVerified = (req, res, next) => {
+    if (!req.user) {
+        return res.status(401).json({ error: 'Not authenticated.' });
+    }
+    if (req.user.email_verified === false) {
+        return res.status(403).json({ error: 'Email not verified. Please verify your email first.' });
+    }
+    next();
+};
+
+// ─── Role-based Access Control ──────────────────────────────
+const hasRole = (...allowedRoles) => {
+    return (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).json({ error: 'Not authenticated.' });
+        }
+        // super_admin has access to everything
+        if (req.user.role === 'super_admin') {
+            return next();
+        }
+        if (!allowedRoles.includes(req.user.role)) {
+            return res.status(403).json({ error: 'Access denied. Insufficient permissions.' });
+        }
+        next();
+    };
+};
+
+// ─── Convenience Shortcuts ──────────────────────────────────
 const adminOnly = (req, res, next) => {
-    if (req.user && req.user.role === 'admin') {
+    if (req.user && (req.user.role === 'admin' || req.user.role === 'super_admin')) {
         return next();
     }
     return res.status(403).json({ error: 'Access denied. Admin rights required.' });
 };
 
 const managerOnly = (req, res, next) => {
-    if (req.user && (req.user.role === 'admin' || req.user.role === 'manager')) {
+    if (req.user && (req.user.role === 'admin' || req.user.role === 'super_admin' || req.user.role === 'manager')) {
         return next();
     }
     return res.status(403).json({ error: 'Access denied. Manager or Admin rights required.' });
 };
 
-module.exports = { auth, optionalAuth, adminOnly, managerOnly };
+module.exports = { auth, optionalAuth, isEmailVerified, hasRole, adminOnly, managerOnly };

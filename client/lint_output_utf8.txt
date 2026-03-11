@@ -1,0 +1,1019 @@
+﻿node.exe : 
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Users\Hani\AppData\
+Roaming\n ...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (:String) [],    
+ RemoteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+./src/app/(admin)/admin
+/analytics/page.tsx
+89:169  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+
+./src/app/(admin)/admin
+/customers/page.tsx
+7:57  Error: 'Mail' is 
+defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+
+./src/app/(admin)/admin
+/customers/[id]/page.ts
+x
+7:69  Error: 
+'DollarSign' is 
+defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+
+./src/app/(admin)/admin
+/dashboard/page.tsx
+16:5  Error: 'Eye' is 
+defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+146:88  Error: 'name' 
+is defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+146:96  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+
+./src/app/(admin)/admin
+/inventory/page.tsx
+6:10  Error: 
+'AlertTriangle' is 
+defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+6:49  Error: 'Package' 
+is defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+
+./src/app/(admin)/admin
+/layout.tsx
+271:95  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+281:150  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+
+./src/app/(admin)/admin
+/orders/page.tsx
+7:64  Error: 'Package' 
+is defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+
+./src/app/(admin)/admin
+/orders/[id]/page.tsx
+8:97  Error: 'Clock' 
+is defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+
+./src/app/(admin)/admin
+/products/page.tsx
+9:5  Error: 'Filter' 
+is defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+118:102  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+144:52  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+157:49  Warning: Using 
+`<img>` could result 
+in slower LCP and 
+higher bandwidth. 
+Consider using `<Image 
+/>` from `next/image` 
+to automatically 
+optimize images. This 
+may incur additional 
+usage or cost from 
+your provider. See: htt
+ps://nextjs.org/docs/me
+ssages/no-img-element  
+@next/next/no-img-eleme
+nt
+
+./src/app/(admin)/admin
+/products/[id]/edit/pag
+e.tsx
+3:20  Error: 
+'useCallback' is 
+defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+7:8  Error: 'Link' is 
+defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+8:77  Error: 
+'AlertTriangle' is 
+defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+53:67  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+95:65  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+237:71  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+
+./src/app/(admin)/admin
+/products/[id]/page.tsx
+25:66  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+134:69  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+
+./src/app/(admin)/admin
+/reviews/page.tsx
+3:20  Error: 
+'useMutation' is 
+defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+5:16  Error: 'Check' 
+is defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+5:23  Error: 'Trash2' 
+is defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+8:11  Error: 
+'queryClient' is 
+assigned a value but 
+never used.  @typescrip
+t-eslint/no-unused-vars
+10:19  Error: 
+'pendingData' is 
+assigned a value but 
+never used.  @typescrip
+t-eslint/no-unused-vars
+10:43  Error: 
+'loadingPending' is 
+assigned a value but 
+never used.  @typescrip
+t-eslint/no-unused-vars
+
+./src/app/(admin)/admin
+/settings/page.tsx
+6:10  Error: 
+'Settings' is defined 
+but never used.  @types
+cript-eslint/no-unused-
+vars
+6:46  Error: 'Users' 
+is defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+6:73  Error: 'Plus' is 
+defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+8:116  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+103:64  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+
+./src/app/(admin)/admin
+/users/page.tsx
+25:100  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+38:39  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+67:23  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+136:57  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+
+./src/app/(auth)/accept
+-invitation/page.tsx
+17:50  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+37:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+76:23  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+
+./src/app/(auth)/login/
+page.tsx
+46:23  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+
+./src/app/(auth)/regist
+er/page.tsx
+62:23  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+
+./src/app/(shop)/contac
+t/page.tsx
+39:23  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+
+./src/app/(shop)/faq/pa
+ge.tsx
+5:66  Error: 
+'CreditCard' is 
+defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+37:63  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+
+./src/app/(shop)/page-c
+lient.tsx
+7:36  Error: 
+'ChevronDown' is 
+defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+7:55  Error: 'Volume2' 
+is defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+7:64  Error: 'VolumeX' 
+is defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+46:11  Error: 
+'springX' is assigned 
+a value but never 
+used.  @typescript-esli
+nt/no-unused-vars
+47:11  Error: 
+'springY' is assigned 
+a value but never 
+used.  @typescript-esli
+nt/no-unused-vars
+64:11  Error: 
+'toggleMute' is 
+assigned a value but 
+never used.  @typescrip
+t-eslint/no-unused-vars
+
+./src/app/(shop)/return
+s/page.tsx
+3:10  Error: 
+'RotateCcw' is defined 
+but never used.  @types
+cript-eslint/no-unused-
+vars
+
+./src/app/(shop)/shop/p
+age-client.tsx
+31:11  Warning: The 
+'products' logical 
+expression could make 
+the dependencies of 
+useMemo Hook (at line 
+70) change on every 
+render. Move it inside 
+the useMemo callback. 
+Alternatively, wrap 
+the initialization of 
+'products' in its own 
+useMemo() Hook.  react-
+hooks/exhaustive-deps
+
+./src/app/(shop)/shop/p
+age.tsx
+33:36  Error: 
+'searchParams' is 
+defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+
+./src/app/(shop)/shop/[
+slug]/page.tsx
+14:5  Error: 'Check' 
+is defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+36:28  Error: 
+'setSelectedSizeId' is 
+assigned a value but 
+never used.  @typescrip
+t-eslint/no-unused-vars
+
+./src/app/(shop)/wishli
+st/page.tsx
+40:31  Error: `'` can 
+be escaped with 
+`&apos;`, `&lsquo;`, 
+`&#39;`, `&rsquo;`.  re
+act/no-unescaped-entiti
+es
+43:38  Error: `'` can 
+be escaped with 
+`&apos;`, `&lsquo;`, 
+`&#39;`, `&rsquo;`.  re
+act/no-unescaped-entiti
+es
+
+./src/components/admin/
+ProductForm.tsx
+8:45  Error: 'Upload' 
+is defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+8:81  Error: 
+'ChevronDown' is 
+defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+8:94  Error: 
+'ChevronUp' is defined 
+but never used.  @types
+cript-eslint/no-unused-
+vars
+9:10  Error: 'motion' 
+is defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+9:18  Error: 
+'AnimatePresence' is 
+defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+13:19  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+38:46  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+104:64  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+120:95  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+128:86  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+388:67  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+
+./src/lib/api.ts
+1:19  Error: 
+'ProductColor' is 
+defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+1:33  Error: 
+'ProductSize' is 
+defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+1:46  Error: 
+'ProductImage' is 
+defined but never 
+used.  @typescript-esli
+nt/no-unused-vars
+7:37  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+9:47  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+19:55  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+19:106  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+30:54  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+30:104  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+90:74  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+91:38  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+99:38  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+105:80  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+106:38  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+115:99  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+116:38  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+123:109  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+124:38  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+132:40  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+133:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+137:31  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+137:73  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+138:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+144:43  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+144:85  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+145:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+152:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+158:36  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+159:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+163:31  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+164:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+167:87  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+168:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+174:69  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+175:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+182:84  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+183:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+189:52  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+190:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+193:80  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+194:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+201:78  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+219:148  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+220:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+226:136  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+227:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+234:60  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+235:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+239:77  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+240:65  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+241:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+244:52  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+245:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+248:117  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+249:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+256:80  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+257:65  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+258:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+261:55  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+262:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+266:79  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+267:65  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+268:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+271:54  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+272:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+275:36  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+275:50  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+276:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+279:48  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+279:62  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+280:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+283:51  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+284:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+287:54  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+288:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+291:59  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+292:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+296:78  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+297:65  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+298:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+301:30  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+301:44  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+302:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+305:42  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+305:56  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+306:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+309:45  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+310:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+314:57  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+315:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+318:95  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+319:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+323:36  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+324:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+327:62  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+328:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+332:83  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+333:65  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+334:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+338:29  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+339:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+342:47  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+343:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+346:50  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+347:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+350:67  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+351:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+354:54  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+355:27  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+359:57  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+370:58  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esli
+nt/no-explicit-any
+
+info  - Need to 
+disable some ESLint 
+rules? Learn more 
+here: https://nextjs.or
+g/docs/basic-features/e
+slint#disabling-rules

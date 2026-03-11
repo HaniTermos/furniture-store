@@ -73,6 +73,22 @@ const Review = {
         return rows[0] || null;
     },
 
+    async adminReply(id, reply) {
+        const { rows } = await pool.query(
+            `UPDATE reviews SET admin_reply = $1, admin_reply_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *`,
+            [reply, id]
+        );
+        return rows[0] || null;
+    },
+
+    async toggleFeatured(id) {
+        const { rows } = await pool.query(
+            `UPDATE reviews SET is_featured = NOT is_featured WHERE id = $1 RETURNING *`,
+            [id]
+        );
+        return rows[0] || null;
+    },
+
     async delete(id) {
         const { rowCount } = await pool.query(`DELETE FROM reviews WHERE id = $1`, [id]);
         return rowCount > 0;

@@ -1,201 +1,406 @@
 'use client';
 
-import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import {
-    BarChart3,
-    Package,
+    DollarSign,
     ShoppingCart,
     Users,
-    DollarSign,
+    Package,
     TrendingUp,
-    Settings,
-    ArrowRight,
-    Loader2,
+    TrendingDown,
+    Star,
+    AlertTriangle,
+    ArrowUpRight,
+    Clock,
+    Eye,
 } from 'lucide-react';
-import { StaggerContainer, StaggerChild, CountUp } from '@/components/motion/Reveal';
+import Link from 'next/link';
+import {
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    BarChart, Bar, PieChart, Pie, Cell,
+} from 'recharts';
+import { useState } from 'react';
 
-const statusColors: Record<string, string> = {
-    pending: 'bg-yellow-100 text-yellow-700',
-    processing: 'bg-blue-100 text-blue-700',
-    shipped: 'bg-purple-100 text-purple-700',
-    delivered: 'bg-green-100 text-green-700',
-    cancelled: 'bg-red-100 text-red-700',
-};
+interface RevenueData { date: string; revenue: number; orders: number; }
+interface SalesCategory { category: string; revenue: string; count: number; }
+interface TopProduct { id: string; name: string; revenue: number; sold: number; }
+interface DashboardActivity { id: string; action: string; user_name?: string; entity_type?: string; created_at: string; }
+interface DashboardOrder { id: string; order_number: string; customer_name?: string; guest_email?: string; status: string; total_amount: string | number; }
 
-export default function AdminDashboard() {
-    const { data: dashboardData, isLoading } = useQuery({
-        queryKey: ['adminDashboard'],
+const COLORS = ['#F97316', '#3B82F6', '#10B981', '#8B5CF6', '#EC4899', '#06B6D4', '#F59E0B', '#EF4444'];
+
+function StatCard({ title, value, change, changeLabel, icon: Icon, color, link }: {
+    title: string; value: string | number; change?: number; changeLabel?: string;
+    icon: React.ElementType; color: string; link?: string;
+}) {
+    const isPositive = change !== undefined && change >= 0;
+    const Wrapper = link ? Link : 'div';
+    return (
+        <Wrapper href={link || '#'} className={`group relative overflow-hidden rounded-2xl border p-5 transition-all duration-300 hover:shadow-lg hover:shadow-${color}/5 bg-white border-neutral-100`}>
+            <div className="flex items-start justify-between">
+                <div className="space-y-2">
+                    <p className="text-sm text-neutral-500">{title}</p>
+                    <p className="text-2xl font-bold tracking-tight">{value}</p>
+                    {change !== undefined && (
+                        <div className={`flex items-center gap-1 text-xs font-medium ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
+                            {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                            <span>{isPositive ? '+' : ''}{change.toFixed(1)}%</span>
+                            {changeLabel && <span className="text-neutral-400 font-normal">{changeLabel}</span>}
+                        </div>
+                    )}
+                </div>
+                <div className={`p-3 rounded-xl bg-${color}/10 text-${color} flex-shrink-0`} style={{
+                    backgroundColor: `${color}15`,
+                    color: color,
+                }}>
+                    <Icon className="w-5 h-5" />
+                </div>
+            </div>
+            {link && (
+                <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ArrowUpRight className="w-4 h-4 text-neutral-400" />
+                </div>
+            )}
+        </Wrapper>
+    );
+}
+
+function RevenueChart({ data }: { data: RevenueData[] }) {
+    const [period, setPeriod] = useState<'7d' | '30d'>('30d');
+    const chartData = period === '7d' ? data.slice(-7) : data;
+
+    return (
+        <div className="rounded-2xl border bg-white border-neutral-100 p-5">
+            <div className="flex items-center justify-between mb-6">
+                <div>
+                    <h3 className="font-semibold">Revenue Overview</h3>
+                    <p className="text-sm text-neutral-500">Daily revenue and orders</p>
+                </div>
+                <div className="flex gap-1 p-1 bg-neutral-100 rounded-lg">
+                    {(['7d', '30d'] as const).map((p) => (
+                        <button
+                            key={p}
+                            onClick={() => setPeriod(p)}
+                            className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${period === p
+                                ? 'bg-white shadow-sm'
+                                : 'text-neutral-500 hover:text-neutral-700'
+                                }`}
+                        >
+                            {p === '7d' ? '7 Days' : '30 Days'}
+                        </button>
+                    ))}
+                </div>
+            </div>
+            <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                    <XAxis
+                        dataKey="date"
+                        tickFormatter={(v) => new Date(v).toLocaleDateString('en', { month: 'short', day: 'numeric' })}
+                        stroke="#9ca3af"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                    />
+                    <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                    <Tooltip
+                        contentStyle={{
+                            background: 'rgba(0,0,0,0.85)',
+                            border: 'none',
+                            borderRadius: '12px',
+                            color: '#fff',
+                            fontSize: '13px',
+                        }}
+                        formatter={(value: unknown) => [`$${Number(value || 0).toFixed(2)}`, 'Revenue']}
+                        labelFormatter={(label) => new Date(label).toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })}
+                    />
+                    <Line
+                        type="monotone"
+                        dataKey="revenue"
+                        stroke="#F97316"
+                        strokeWidth={2.5}
+                        dot={false}
+                        activeDot={{ r: 5, fill: '#F97316', stroke: '#fff', strokeWidth: 2 }}
+                    />
+                </LineChart>
+            </ResponsiveContainer>
+        </div>
+    );
+}
+
+function SalesByCategoryChart({ data }: { data: SalesCategory[] }) {
+    return (
+        <div className="rounded-2xl border bg-white border-neutral-100 p-5">
+            <h3 className="font-semibold mb-4">Sales by Category</h3>
+            <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                    <Pie
+                        data={data.filter(d => parseFloat(d.revenue) > 0)}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={70}
+                        outerRadius={110}
+                        dataKey="revenue"
+                        nameKey="category"
+                        label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }: any) => {
+                            if (!percent) return null;
+                            const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                            const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
+                            const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
+                            return (
+                                <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" className="text-xs font-medium">
+                                    {`${(percent * 100).toFixed(0)}%`}
+                                </text>
+                            );
+                        }}
+                        labelLine={false}
+                    >
+                        {data.map((_, idx) => (
+                            <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
+                        ))}
+                    </Pie>
+                    <Tooltip
+                        contentStyle={{ background: 'rgba(0,0,0,0.85)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '13px' }}
+                        formatter={(value: number) => [`$${Number(value).toFixed(2)}`, 'Revenue']}
+                    />
+                </PieChart>
+            </ResponsiveContainer>
+        </div>
+    );
+}
+
+function TopProductsChart({ data }: { data: TopProduct[] }) {
+    return (
+        <div className="rounded-2xl border bg-white border-neutral-100 p-5">
+            <h3 className="font-semibold mb-4">Top Products</h3>
+            <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={data.slice(0, 8)} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+                    <XAxis type="number" tickFormatter={(v) => `$${v}`} stroke="#9ca3af" fontSize={12} />
+                    <YAxis type="category" dataKey="name" width={120} stroke="#9ca3af" fontSize={11} tick={{ fill: '#6b7280' }} />
+                    <Tooltip
+                        contentStyle={{ background: 'rgba(0,0,0,0.85)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '13px' }}
+                        formatter={(value: unknown) => [`$${Number(value || 0).toFixed(2)}`, 'Revenue']}
+                    />
+                    <Bar dataKey="revenue" fill="#F97316" radius={[0, 6, 6, 0]} barSize={24} />
+                </BarChart>
+            </ResponsiveContainer>
+        </div>
+    );
+}
+
+function ActivityFeed({ activities }: { activities: DashboardActivity[] }) {
+    const actionIcons: Record<string, React.ElementType> = {
+        login: Users, register: Users, create_product: Package, update_product: Package,
+        update_order_status: ShoppingCart, create_coupon: Star, adjust_stock: AlertTriangle,
+    };
+
+    return (
+        <div className="rounded-2xl border bg-white border-neutral-100 p-5">
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold">Recent Activity</h3>
+                <Link href="/admin/activity" className="text-xs text-primary-orange hover:underline">View All</Link>
+            </div>
+            <div className="space-y-3">
+                {(activities || []).slice(0, 8).map((a: DashboardActivity) => {
+                    const Icon = actionIcons[a.action] || Clock;
+                    return (
+                        <div key={a.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-neutral-50 transition-colors">
+                            <div className="p-1.5 rounded-lg bg-primary-orange/10 text-primary-orange flex-shrink-0">
+                                <Icon className="w-3.5 h-3.5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-sm">
+                                    <span className="font-medium">{a.user_name || 'System'}</span>{' '}
+                                    <span className="text-neutral-500">{a.action?.replace(/_/g, ' ')}</span>
+                                    {a.entity_type && (
+                                        <span className="text-neutral-400"> on {a.entity_type}</span>
+                                    )}
+                                </p>
+                                <p className="text-[11px] text-neutral-400 mt-0.5">
+                                    {new Date(a.created_at).toLocaleString()}
+                                </p>
+                            </div>
+                        </div>
+                    );
+                })}
+                {(!activities || activities.length === 0) && (
+                    <p className="text-sm text-neutral-400 text-center py-8">No recent activity</p>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function RecentOrders({ orders }: { orders: DashboardOrder[] }) {
+    const statusColors: Record<string, string> = {
+        pending: 'bg-amber-100 text-amber-700', confirmed: 'bg-blue-100 text-blue-700',
+        processing: 'bg-indigo-100 text-indigo-700', shipped: 'bg-purple-100 text-purple-700',
+        delivered: 'bg-emerald-100 text-emerald-700', cancelled: 'bg-red-100 text-red-700',
+    };
+
+    return (
+        <div className="rounded-2xl border bg-white border-neutral-100 p-5">
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold">Recent Orders</h3>
+                <Link href="/admin/orders" className="text-xs text-primary-orange hover:underline">View All</Link>
+            </div>
+            <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                    <thead>
+                        <tr className="text-left text-neutral-500 border-b border-neutral-100">
+                            <th className="pb-3 font-medium">Order</th>
+                            <th className="pb-3 font-medium">Customer</th>
+                            <th className="pb-3 font-medium">Status</th>
+                            <th className="pb-3 font-medium text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {(orders || []).map((order: DashboardOrder) => (
+                            <tr key={order.id} className="border-b border-neutral-50 last:border-0">
+                                <td className="py-3">
+                                    <Link href={`/admin/orders/${order.id}`} className="font-medium text-primary-orange hover:underline">
+                                        #{order.order_number}
+                                    </Link>
+                                </td>
+                                <td className="py-3 text-neutral-500">{order.customer_name || order.guest_email || '—'}</td>
+                                <td className="py-3">
+                                    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium capitalize ${statusColors[order.status] || 'bg-neutral-100 text-neutral-600'}`}>
+                                        {order.status}
+                                    </span>
+                                </td>
+                                <td className="py-3 text-right font-medium">${Number(order.total_amount).toFixed(2)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                {(!orders || orders.length === 0) && (
+                    <p className="text-sm text-neutral-400 text-center py-6">No orders yet</p>
+                )}
+            </div>
+        </div>
+    );
+}
+
+export default function AdminDashboardPage() {
+    const { data, isLoading, error } = useQuery({
+        queryKey: ['admin-dashboard'],
         queryFn: () => api.getAdminDashboard(),
+        refetchInterval: 30000,
     });
 
     if (isLoading) {
         return (
-            <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-neutral-400">
-                <Loader2 className="w-8 h-8 animate-spin text-primary-orange" />
-                <p>Loading command center data...</p>
+            <div className="space-y-6 animate-pulse">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                    {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="h-32 bg-neutral-200 rounded-2xl" />
+                    ))}
+                </div>
+                <div className="h-80 bg-neutral-200 rounded-2xl" />
             </div>
         );
     }
 
-    const { stats, recentOrders, revenueByDay } = dashboardData || {};
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-3" />
+                    <h3 className="text-lg font-semibold">Failed to load dashboard</h3>
+                    <p className="text-neutral-500 text-sm">Please check your connection and try again.</p>
+                </div>
+            </div>
+        );
+    }
 
-    const dynamicStats = [
-        { label: 'Total Revenue', value: Number(stats?.total_revenue || 0), prefix: '$', icon: DollarSign, change: '+12.5%', color: 'bg-green-50 text-green-600' },
-        { label: 'Orders', value: Number(stats?.total_orders || 0), suffix: '', icon: ShoppingCart, change: '+8.2%', color: 'bg-blue-50 text-blue-600' },
-        { label: 'Products', value: Number(stats?.total_products || 0), suffix: '', icon: Package, change: '+Active', color: 'bg-purple-50 text-purple-600' },
-        { label: 'Customers', value: Number(stats?.total_customers || 0), suffix: '', icon: Users, change: '+23%', color: 'bg-orange-50 text-orange-600' },
-    ];
-
-    // Compute simple max for the dynamic chart based on real revenue days
-    const maxRevenue = revenueByDay?.length
-        ? Math.max(...revenueByDay.map((d: any) => Number(d.revenue)))
-        : 100;
+    const stats = data?.stats || {};
+    const todayChange = stats.yesterday_revenue > 0
+        ? ((stats.today_revenue - stats.yesterday_revenue) / stats.yesterday_revenue) * 100
+        : 0;
+    const customerChange = stats.new_customers_last_week > 0
+        ? ((stats.new_customers_this_week - stats.new_customers_last_week) / stats.new_customers_last_week) * 100
+        : 0;
 
     return (
-        <div className="space-y-8">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
-                    <p className="text-neutral-400 text-sm mt-1">Welcome back! Here&apos;s what&apos;s happening.</p>
-                </div>
-                <Link href="/admin/settings" className="btn-outline text-sm">
-                    <Settings className="w-4 h-4" />
-                    Settings
-                </Link>
+        <div className="space-y-6">
+            {/* Page Header */}
+            <div>
+                <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+                <p className="text-neutral-500 text-sm mt-1">Welcome back. Here&apos;s your store overview.</p>
             </div>
 
-            {/* Stats Grid */}
-            <StaggerContainer className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {dynamicStats.map((stat) => (
-                    <StaggerChild key={stat.label}>
-                        <div className="bg-white rounded-2xl border border-neutral-100 p-5">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${stat.color}`}>
-                                    <stat.icon className="w-5 h-5" />
-                                </div>
-                                <span className="text-xs font-medium text-green-600 flex items-center gap-0.5">
-                                    <TrendingUp className="w-3 h-3" />
-                                    {stat.change}
-                                </span>
-                            </div>
-                            <p className="text-neutral-400 text-sm">{stat.label}</p>
-                            <p className="text-2xl font-bold mt-1">
-                                {stat.prefix || ''}
-                                <CountUp end={stat.value} suffix={stat.suffix || ''} />
-                            </p>
-                        </div>
-                    </StaggerChild>
-                ))}
-            </StaggerContainer>
+            {/* KPI Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                <StatCard
+                    title="Today's Revenue"
+                    value={`$${(stats.today_revenue || 0).toFixed(2)}`}
+                    change={todayChange}
+                    changeLabel="vs yesterday"
+                    icon={DollarSign}
+                    color="#10B981"
+                    link="/admin/analytics"
+                />
+                <StatCard
+                    title="Total Orders"
+                    value={stats.total_orders || 0}
+                    icon={ShoppingCart}
+                    color="#3B82F6"
+                    link="/admin/orders"
+                />
+                <StatCard
+                    title="Customers"
+                    value={stats.total_customers || 0}
+                    change={customerChange}
+                    changeLabel="this week"
+                    icon={Users}
+                    color="#8B5CF6"
+                    link="/admin/customers"
+                />
+                <StatCard
+                    title="Products"
+                    value={stats.total_products || 0}
+                    icon={Package}
+                    color="#F97316"
+                    link="/admin/products"
+                />
+            </div>
 
-            {/* Charts Area */}
-            <div className="grid lg:grid-cols-[1fr_400px] gap-6">
-                {/* Revenue Chart */}
-                <div className="bg-white rounded-2xl border border-neutral-100 p-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="font-semibold text-lg">Revenue Overview (30 Days)</h3>
-                    </div>
-                    {/* Dynamic Chart based on Live Data */}
-                    <div className="h-64 flex items-end gap-1 sm:gap-2">
-                        {revenueByDay && revenueByDay.length > 0 ? revenueByDay.slice(-14).map((day: any, i: number) => {
-                            const heightPerc = maxRevenue > 0 ? (Number(day.revenue) / maxRevenue) * 100 : 0;
-                            return (
-                                <motion.div
-                                    key={day.date}
-                                    initial={{ height: 0 }}
-                                    animate={{ height: `${Math.max(5, heightPerc)}%` }}
-                                    transition={{ duration: 0.6, delay: i * 0.05 }}
-                                    className="flex-1 bg-gradient-to-t from-primary-orange to-primary-orange/60 rounded-t-sm lg:rounded-t-lg group relative"
-                                >
-                                    {/* Tooltip on hover */}
-                                    <div className="opacity-0 group-hover:opacity-100 absolute -top-10 left-1/2 -translate-x-1/2 bg-primary-black text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none transition-opacity z-10">
-                                        ${Number(day.revenue).toFixed(0)}
-                                    </div>
-                                </motion.div>
-                            );
-                        }) : (
-                            <div className="w-full h-full flex items-center justify-center text-neutral-400 text-sm">
-                                No recent revenue data available.
-                            </div>
-                        )}
-                    </div>
-                    {revenueByDay && revenueByDay.length > 0 && (
-                        <div className="flex justify-between mt-2 text-xs text-neutral-400">
-                            <span>{new Date(revenueByDay[Math.max(0, revenueByDay.length - 14)]?.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
-                            <span>{new Date(revenueByDay[revenueByDay.length - 1]?.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
-                        </div>
+            {/* Alert Badges */}
+            {(stats.pending_reviews > 0 || stats.low_stock_count > 0) && (
+                <div className="flex gap-3 flex-wrap">
+                    {stats.pending_reviews > 0 && (
+                        <Link href="/admin/reviews" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-sm font-medium hover:shadow-md transition-all">
+                            <Star className="w-4 h-4" />
+                            {stats.pending_reviews} reviews awaiting approval
+                        </Link>
+                    )}
+                    {stats.low_stock_count > 0 && (
+                        <Link href="/admin/inventory" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-medium hover:shadow-md transition-all">
+                            <AlertTriangle className="w-4 h-4" />
+                            {stats.low_stock_count} items low on stock
+                        </Link>
                     )}
                 </div>
+            )}
 
-                {/* Quick Links */}
-                <div className="space-y-4">
-                    {[
-                        { label: 'Manage Products', href: '/admin/products', icon: Package, count: `${stats?.total_products || 0} active` },
-                        { label: 'View Orders', href: '/admin/orders', icon: ShoppingCart, count: `${stats?.total_orders || 0} total` },
-                        { label: 'Pending Reviews', href: '/admin/dashboard', icon: BarChart3, count: `${stats?.pending_reviews || 0} waiting` },
-                    ].map((link) => (
-                        <Link
-                            key={link.href}
-                            href={link.href}
-                            className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-neutral-100 hover:border-neutral-200 hover:shadow-sm transition-all group"
-                        >
-                            <div className="w-10 h-10 bg-neutral-100 rounded-xl flex items-center justify-center group-hover:bg-primary-orange/10 transition-colors">
-                                <link.icon className="w-5 h-5 text-neutral-600 group-hover:text-primary-orange transition-colors" />
-                            </div>
-                            <div className="flex-1">
-                                <p className="font-medium text-sm">{link.label}</p>
-                                <p className="text-xs text-neutral-400">{link.count}</p>
-                            </div>
-                            <ArrowRight className="w-4 h-4 text-neutral-300 group-hover:text-primary-orange transition-colors" />
-                        </Link>
-                    ))}
+            {/* Charts Row */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div className="xl:col-span-2">
+                    <RevenueChart data={data?.revenueByDay || []} />
                 </div>
+                <SalesByCategoryChart data={data?.salesByCategory || []} />
             </div>
 
-            {/* Recent Orders */}
-            <div className="bg-white rounded-2xl border border-neutral-100">
-                <div className="flex items-center justify-between p-6 pb-4">
-                    <h3 className="font-semibold text-lg">Recent Orders</h3>
-                    <Link
-                        href="/admin/orders"
-                        className="text-sm text-primary-orange hover:text-primary-orange-hover transition-colors"
-                    >
-                        View All
-                    </Link>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="border-b border-neutral-100">
-                                <th className="text-left font-medium text-neutral-400 px-6 py-3">Order ID</th>
-                                <th className="text-left font-medium text-neutral-400 px-6 py-3">Customer</th>
-                                <th className="text-left font-medium text-neutral-400 px-6 py-3">Amount</th>
-                                <th className="text-left font-medium text-neutral-400 px-6 py-3">Status</th>
-                                <th className="text-left font-medium text-neutral-400 px-6 py-3">Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {recentOrders.map((order) => (
-                                <tr key={order.id} className="border-b border-neutral-50 last:border-0 hover:bg-neutral-50 transition-colors">
-                                    <td className="px-6 py-3 font-mono font-medium">{order.id}</td>
-                                    <td className="px-6 py-3">{order.customer}</td>
-                                    <td className="px-6 py-3 font-medium">${order.amount}</td>
-                                    <td className="px-6 py-3">
-                                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${statusColors[order.status]}`}>
-                                            {order.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-3 text-neutral-400">{order.date}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+            {/* Top Products + Recent Orders */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <TopProductsChart data={data?.topProducts || []} />
+                <RecentOrders orders={data?.recentOrders || []} />
             </div>
+
+            {/* Activity Feed */}
+            <ActivityFeed activities={data?.recentActivity || []} />
         </div>
     );
 }

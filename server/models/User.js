@@ -7,8 +7,18 @@ const User = {
         const { rows } = await pool.query(
             `INSERT INTO users (email, password_hash, name, phone, role)
        VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, email, name, phone, role, avatar_url, is_active, created_at`,
+       RETURNING id, email, name, phone, role, avatar_url, is_active, email_verified, created_at`,
             [email, passwordHash, name, phone, role]
+        );
+        return rows[0];
+    },
+
+    async createFromGoogle({ email, name, google_id, avatar_url }) {
+        const { rows } = await pool.query(
+            `INSERT INTO users (email, name, google_id, avatar_url, email_verified, password_hash)
+       VALUES ($1, $2, $3, $4, true, '')
+       RETURNING id, email, name, role, avatar_url, is_active, email_verified, created_at`,
+            [email, name, google_id, avatar_url]
         );
         return rows[0];
     },
@@ -23,15 +33,51 @@ const User = {
 
     async findById(id) {
         const { rows } = await pool.query(
-            `SELECT id, email, name, phone, role, avatar_url, is_active, created_at, updated_at
+            `SELECT id, email, name, phone, role, avatar_url, is_active, email_verified,
+              google_id, failed_login_attempts, locked_until, two_factor_enabled,
+              preferences, created_at, updated_at
        FROM users WHERE id = $1`,
             [id]
         );
         return rows[0] || null;
     },
 
+    async findByGoogleId(googleId) {
+        const { rows } = await pool.query(
+            `SELECT id, email, name, phone, role, avatar_url, is_active, email_verified,
+              google_id, created_at, updated_at
+       FROM users WHERE google_id = $1`,
+            [googleId]
+        );
+        return rows[0] || null;
+    },
+
+    async findByVerificationToken(token) {
+        const { rows } = await pool.query(
+            `SELECT id, email, name, role FROM users WHERE email_verification_token = $1`,
+            [token]
+        );
+        return rows[0] || null;
+    },
+
+    async findByResetToken(token) {
+        const { rows } = await pool.query(
+            `SELECT id, email, name, role, password_reset_expires
+       FROM users
+       WHERE password_reset_token = $1 AND password_reset_expires > CURRENT_TIMESTAMP`,
+            [token]
+        );
+        return rows[0] || null;
+    },
+
     async update(id, fields) {
-        const ALLOWED_FIELDS = ['email', 'name', 'phone', 'role', 'avatar_url', 'is_active'];
+        const ALLOWED_FIELDS = [
+            'email', 'name', 'phone', 'role', 'avatar_url', 'is_active',
+            'google_id', 'email_verified', 'email_verification_token',
+            'password_reset_token', 'password_reset_expires',
+            'last_login_ip', 'failed_login_attempts', 'locked_until',
+            'two_factor_secret', 'two_factor_enabled', 'preferences',
+        ];
         const keys = Object.keys(fields).filter(k => ALLOWED_FIELDS.includes(k));
         if (keys.length === 0) return null;
 
@@ -40,7 +86,7 @@ const User = {
         const { rows } = await pool.query(
             `UPDATE users SET ${setClause}, updated_at = CURRENT_TIMESTAMP
        WHERE id = $1
-       RETURNING id, email, name, phone, role, avatar_url, is_active, updated_at`,
+       RETURNING id, email, name, phone, role, avatar_url, is_active, email_verified, updated_at`,
             [id, ...values]
         );
         return rows[0] || null;
@@ -49,7 +95,8 @@ const User = {
     async updatePassword(id, newPassword) {
         const passwordHash = await bcrypt.hash(newPassword, 12);
         await pool.query(
-            `UPDATE users SET password_hash = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+            `UPDATE users SET password_hash = $2, password_reset_token = NULL,
+       password_reset_expires = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
             [id, passwordHash]
         );
     },
@@ -58,13 +105,79 @@ const User = {
         return bcrypt.compare(plainPassword, hashedPassword);
     },
 
-    async findAll({ page = 1, limit = 20, role } = {}) {
+    // ─── Login Security Methods ─────────────────────────────
+    async incrementFailedLogin(id) {
+        await pool.query(
+            `UPDATE users SET failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1 WHERE id = $1`,
+            [id]
+        );
+    },
+
+    async resetFailedLogin(id) {
+        await pool.query(
+            `UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE id = $1`,
+            [id]
+        );
+    },
+
+    async lockAccount(id, minutes) {
+        await pool.query(
+            `UPDATE users SET locked_until = CURRENT_TIMESTAMP + INTERVAL '${minutes} minutes' WHERE id = $1`,
+            [id]
+        );
+    },
+
+    async setEmailVerified(id) {
+        const { rows } = await pool.query(
+            `UPDATE users SET email_verified = true, email_verification_token = NULL,
+       email_verified_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1 RETURNING id, email, name, role, email_verified`,
+            [id]
+        );
+        return rows[0] || null;
+    },
+
+    async setVerificationToken(id, token) {
+        await pool.query(
+            `UPDATE users SET email_verification_token = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+            [id, token]
+        );
+    },
+
+    async setResetToken(id, token, expiresMinutes = 60) {
+        await pool.query(
+            `UPDATE users SET password_reset_token = $2,
+       password_reset_expires = CURRENT_TIMESTAMP + INTERVAL '${expiresMinutes} minutes',
+       updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+            [id, token]
+        );
+    },
+
+    async updateLastLogin(id, ip) {
+        await pool.query(
+            `UPDATE users SET last_login_ip = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+            [id, ip]
+        );
+    },
+
+    // ─── List / Admin Methods ───────────────────────────────
+    async findAll({ page = 1, limit = 20, role, search } = {}) {
         const offset = (page - 1) * limit;
-        let query = `SELECT id, email, name, phone, role, is_active, created_at FROM users`;
+        let query = `SELECT id, email, name, phone, role, avatar_url, is_active, email_verified, last_login_ip, created_at FROM users`;
+        const conditions = [];
         const params = [];
+
         if (role) {
-            query += ` WHERE role = $1`;
             params.push(role);
+            conditions.push(`role = $${params.length}`);
+        }
+        if (search) {
+            params.push(`%${search}%`);
+            conditions.push(`(name ILIKE $${params.length} OR email ILIKE $${params.length})`);
+        }
+
+        if (conditions.length > 0) {
+            query += ` WHERE ${conditions.join(' AND ')}`;
         }
         query += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
         params.push(limit, offset);
@@ -74,9 +187,17 @@ const User = {
         // Count
         let countQuery = `SELECT COUNT(*) FROM users`;
         const countParams = [];
+        const countConditions = [];
         if (role) {
-            countQuery += ` WHERE role = $1`;
             countParams.push(role);
+            countConditions.push(`role = $${countParams.length}`);
+        }
+        if (search) {
+            countParams.push(`%${search}%`);
+            countConditions.push(`(name ILIKE $${countParams.length} OR email ILIKE $${countParams.length})`);
+        }
+        if (countConditions.length > 0) {
+            countQuery += ` WHERE ${countConditions.join(' AND ')}`;
         }
         const { rows: countRows } = await pool.query(countQuery, countParams);
 

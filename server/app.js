@@ -1,6 +1,7 @@
 // ═══════════════════════════════════════════════════════════════
 //  app.js — Hardened Express Application
-//  Furniture Store E-Commerce API (Security-Reviewed)
+//  Furniture Store E-Commerce API
+//  With Passport.js + Session + JWT Hybrid Auth
 // ═══════════════════════════════════════════════════════════════
 
 const express = require('express');
@@ -12,6 +13,12 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 const compression = require('compression');
 const { v4: uuidv4 } = require('uuid');
+const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
+const pool = require('./db/pool');
+
+// ─── Passport Configuration ─────────────────────────────────
+const passport = require('./config/passport');
 
 // ─── Middleware ───────────────────────────────────────────────
 const errorHandler = require('./middleware/errorHandler');
@@ -51,8 +58,8 @@ app.set('trust proxy', 1);
 //  2. SECURITY HEADERS (Helmet)
 // ═══════════════════════════════════════════════════════════════
 app.use(helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },   // allow images to load cross-origin
-    contentSecurityPolicy: false,                             // tweak later if serving HTML
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: false,
     hsts: {
         maxAge: 31536000,
         includeSubDomains: true,
@@ -86,7 +93,6 @@ const getAllowedOrigins = () => {
 app.use(cors({
     origin: (origin, callback) => {
         const allowed = getAllowedOrigins();
-        // Allow requests with no origin (mobile apps, Postman, curl, server-to-server)
         if (!origin) return callback(null, true);
         if (allowed.includes(origin)) {
             return callback(null, true);
@@ -96,8 +102,8 @@ app.use(cors({
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
-    exposedHeaders: ['X-Total-Count', 'X-Request-ID'],                        // useful for pagination
-    maxAge: 600,                                              // preflight cache 10 min
+    exposedHeaders: ['X-Total-Count', 'X-Request-ID'],
+    maxAge: 600,
 }));
 
 // ═══════════════════════════════════════════════════════════════
@@ -108,16 +114,41 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
 
 // ═══════════════════════════════════════════════════════════════
-//  6. RATE LIMITING
+//  6. SESSION (PostgreSQL-backed via connect-pg-simple)
+// ═══════════════════════════════════════════════════════════════
+app.use(session({
+    store: new pgSession({
+        pool: pool,
+        tableName: 'session',
+        createTableIfMissing: true,
+    }),
+    name: 'fs.sid',
+    secret: process.env.SESSION_SECRET || process.env.JWT_SECRET || 'fallback-session-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+    },
+}));
+
+// ═══════════════════════════════════════════════════════════════
+//  7. PASSPORT INITIALIZATION
+// ═══════════════════════════════════════════════════════════════
+app.use(passport.initialize());
+app.use(passport.session());
+
+// ═══════════════════════════════════════════════════════════════
+//  8. RATE LIMITING
 // ═══════════════════════════════════════════════════════════════
 
-// Global limiter: 100 requests per 15 min per IP
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
-    standardHeaders: true,       // Return rate limit info in `RateLimit-*` headers
-    legacyHeaders: false,        // Disable `X-RateLimit-*` headers
-    // keyGenerator: (req) => req.ip,
+    standardHeaders: true,
+    legacyHeaders: false,
     handler: (req, res) => {
         res.status(429).json({
             error: 'Too many requests. Please try again later.',
@@ -127,17 +158,15 @@ const globalLimiter = rateLimit({
 });
 app.use('/api/', globalLimiter);
 
-// Strict limiter for auth: 5 attempts per 15 min per IP
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 5,
-    skipSuccessfulRequests: true, // Don't count successful logins
+    skipSuccessfulRequests: true,
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: 'Too many authentication attempts. Please try again later.' },
 });
 
-// Configurator limiter (prevent price enumeration)
 const configuratorLimiter = rateLimit({
     windowMs: 60 * 1000,
     max: 30,
@@ -146,7 +175,7 @@ const configuratorLimiter = rateLimit({
 });
 
 // ═══════════════════════════════════════════════════════════════
-//  7. LOGGING (before parsers so we log even malformed requests)
+//  9. LOGGING
 // ═══════════════════════════════════════════════════════════════
 app.use(morgan((tokens, req, res) => {
     return [
@@ -159,23 +188,21 @@ app.use(morgan((tokens, req, res) => {
     ].join(' ');
 }));
 
-
-
 // ═══════════════════════════════════════════════════════════════
-//  8. STATIC FILES (local uploads fallback)
+//  10. STATIC FILES (local uploads fallback)
 // ═══════════════════════════════════════════════════════════════
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
-    maxAge: '7d',                // browser cache for static images
+    maxAge: '7d',
     etag: true,
     index: false,
     dotfiles: 'deny'
 }));
 
 // ═══════════════════════════════════════════════════════════════
-//  9. API ROUTES
+//  11. API ROUTES
 // ═══════════════════════════════════════════════════════════════
 
-// Health check (before rate limiting for monitoring)
+// Health check
 app.get('/health', (req, res) => {
     res.json({
         status: 'ok',
@@ -201,7 +228,7 @@ app.use('/api/designs', designRoutes);
 // Configurator with specific limiting
 app.use('/api/configurator', configuratorLimiter, configuratorRoutes);
 
-// Invitations (Public verify/accept + Admin invite)
+// Invitations
 app.use('/api/invitations', invitationRoutes);
 
 // Contact Form
@@ -211,16 +238,15 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 
-
 // ═══════════════════════════════════════════════════════════════
-//  10. 404 HANDLER — must be AFTER all routes
+//  12. 404 HANDLER
 // ═══════════════════════════════════════════════════════════════
 app.use((req, res) => {
     res.status(404).json({ error: `Route ${req.method} ${req.originalUrl} not found.`, requestId: req.id });
 });
 
 // ═══════════════════════════════════════════════════════════════
-//  11. GLOBAL ERROR HANDLER — must be the LAST middleware
+//  13. GLOBAL ERROR HANDLER
 // ═══════════════════════════════════════════════════════════════
 app.use(errorHandler);
 

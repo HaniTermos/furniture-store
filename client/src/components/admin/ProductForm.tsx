@@ -98,7 +98,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
     };
 
     const addSwatch = () => {
-        setSwatches(prev => [...prev, { name: 'New Option', type: 'color', values: [{ value: '', price_adjustment: 0 }] }]);
+        setSwatches(prev => [...prev, { name: 'New Option', type: 'color', values: [{ value: '#000000', label: 'Black', price_adjustment: 0, is_image: false, image_url: '' }] }]);
     };
 
     const updateSwatch = (index: number, field: string, value: any) => {
@@ -113,7 +113,14 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
 
     const addSwatchValue = (swatchIndex: number) => {
         const newSwatches = [...swatches];
-        newSwatches[swatchIndex].values.push({ value: '', price_adjustment: 0 });
+        const isColor = newSwatches[swatchIndex].type === 'color';
+        newSwatches[swatchIndex].values.push({
+            value: isColor ? '#000000' : '',
+            label: '',
+            price_adjustment: 0,
+            is_image: false,
+            image_url: ''
+        });
         setSwatches(newSwatches);
     };
 
@@ -127,6 +134,18 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
         const newSwatches = [...swatches];
         newSwatches[swatchIndex].values = newSwatches[swatchIndex].values.filter((_: any, i: number) => i !== valueIndex);
         setSwatches(newSwatches);
+    };
+
+    const handleSwatchImageUpload = async (swatchIndex: number, valueIndex: number, file: File) => {
+        try {
+            const formData = new FormData();
+            formData.append('image', file);
+            const res = await api.adminUploadImage(formData);
+            updateSwatchValue(swatchIndex, valueIndex, 'image_url', res.url);
+            updateSwatchValue(swatchIndex, valueIndex, 'is_image', true);
+        } catch (err) {
+            console.error('Failed to upload swatch image:', err);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -159,7 +178,6 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
             }
 
             // Handle Swatches (Config Options)
-            // Note: Simplistic implementation for now - creating new each time if not present
             if (!isEditing) {
                 for (const swatch of swatches) {
                     const option = await api.createConfigurationOption({
@@ -170,10 +188,17 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                     });
 
                     for (const val of swatch.values) {
+                        // For colors, we might want to store name|hex in value if not using the image fields correctly,
+                        // but since the backend supports image_url, we'll use that for images.
+                        // We'll store the label in 'value' and hex in a specific way if needed, or just use 'value' for both.
+                        // Based on transformProduct: const [name, hex] = (v.value || '').split('|');
+                        const combinedValue = swatch.type === 'color' ? `${val.label || 'Color'}|${val.value}` : val.value;
+
                         await api.createConfigurationValue({
                             option_id: option.id,
-                            value: val.value,
-                            price_adjustment: Number(val.price_adjustment) || 0
+                            value: combinedValue,
+                            price_adjustment: Number(val.price_adjustment) || 0,
+                            image_url: val.image_url || null
                         });
                     }
                 }
@@ -386,23 +411,70 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                                     <div className="space-y-3">
                                         <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Values</label>
                                         {swatch.values?.map((val: any, vIdx: number) => (
-                                            <div key={vIdx} className="flex gap-2 items-center">
-                                                <input
-                                                    value={val.value}
-                                                    onChange={(e) => updateSwatchValue(sIdx, vIdx, 'value', e.target.value)}
-                                                    className="flex-1 bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-primary-orange"
-                                                    placeholder={swatch.type === 'color' ? 'Black|#000000' : 'Large'}
-                                                />
-                                                <input
-                                                    type="number"
-                                                    value={val.price_adjustment}
-                                                    onChange={(e) => updateSwatchValue(sIdx, vIdx, 'price_adjustment', e.target.value)}
-                                                    className="w-24 bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-primary-orange"
-                                                    placeholder="+0.00"
-                                                />
-                                                <button type="button" onClick={() => removeSwatchValue(sIdx, vIdx)} className="text-neutral-400 hover:text-red-500">
+                                            <div key={vIdx} className="space-y-3 p-3 bg-neutral-50 rounded-xl border border-neutral-100 relative group">
+                                                <button type="button" onClick={() => removeSwatchValue(sIdx, vIdx)} className="absolute top-2 right-2 text-neutral-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <X className="w-4 h-4" />
                                                 </button>
+
+                                                <div className="flex gap-4 items-start">
+                                                    {swatch.type === 'color' && (
+                                                        <div className="flex flex-col gap-2">
+                                                            <label className="text-[10px] font-bold text-neutral-400 uppercase">Visual</label>
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="relative">
+                                                                    <input
+                                                                        type="color"
+                                                                        value={val.value || '#000000'}
+                                                                        onChange={(e) => updateSwatchValue(sIdx, vIdx, 'value', e.target.value)}
+                                                                        className="w-10 h-10 rounded-lg cursor-pointer border-0 p-0 overflow-hidden"
+                                                                    />
+                                                                </div>
+                                                                <div className="h-10 w-px bg-neutral-200 mx-1" />
+                                                                <label className="cursor-pointer flex flex-col items-center justify-center w-10 h-10 rounded-lg border-2 border-dashed border-neutral-300 hover:border-primary-orange transition-colors">
+                                                                    {val.image_url ? (
+                                                                        <div className="relative w-full h-full rounded-md overflow-hidden">
+                                                                            <Image src={val.image_url} alt="Swatch" fill className="object-cover" />
+                                                                        </div>
+                                                                    ) : (
+                                                                        <Upload className="w-4 h-4 text-neutral-400" />
+                                                                    )}
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="image/*"
+                                                                        className="hidden"
+                                                                        onChange={(e) => e.target.files?.[0] && handleSwatchImageUpload(sIdx, vIdx, e.target.files[0])}
+                                                                    />
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    <div className="flex-1 grid grid-cols-2 gap-3">
+                                                        <div className="flex flex-col gap-1.5">
+                                                            <label className="text-[10px] font-bold text-neutral-400 uppercase">Label</label>
+                                                            <input
+                                                                value={swatch.type === 'color' ? (val.label || '') : val.value}
+                                                                onChange={(e) => updateSwatchValue(sIdx, vIdx, swatch.type === 'color' ? 'label' : 'value', e.target.value)}
+                                                                className="w-full bg-white border border-neutral-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary-orange"
+                                                                placeholder={swatch.type === 'color' ? 'e.g. Oak, Velvet' : 'e.g. Large, 200cm'}
+                                                            />
+                                                        </div>
+                                                        <div className="flex flex-col gap-1.5">
+                                                            <label className="text-[10px] font-bold text-neutral-400 uppercase">Price Adjustment</label>
+                                                            <div className="relative">
+                                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">$</span>
+                                                                <input
+                                                                    type="number"
+                                                                    step="0.01"
+                                                                    value={val.price_adjustment}
+                                                                    onChange={(e) => updateSwatchValue(sIdx, vIdx, 'price_adjustment', e.target.value)}
+                                                                    className="w-full bg-white border border-neutral-200 rounded-lg pl-6 pr-3 py-2 text-sm outline-none focus:border-primary-orange"
+                                                                    placeholder="0.00"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         ))}
                                         <button

@@ -19,6 +19,7 @@ import { useCurrency } from '@/hooks/useCurrency';
 import { useCartStore } from '@/store/cart';
 import { Reveal } from '@/components/motion/Reveal';
 import ProductCard from '@/components/product/ProductCard';
+import ReviewSection from '@/components/product/ReviewSection';
 
 
 
@@ -181,20 +182,26 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                                     </div>
                                 )}
 
-                                {/* Color Swatches - Larger Bubbles */}
+                                {/* Color Swatches - Advanced (Image/RGB) */}
                                 <div className="mt-auto pb-12">
                                     <div className="flex gap-5 flex-wrap">
                                         {product.colors.map((color) => (
                                             <button
                                                 key={color.id}
                                                 onClick={() => setSelectedColorId(color.id)}
-                                                className={`w-14 h-14 rounded-full transition-all duration-500 flex items-center justify-center border-2 ${selectedColor?.id === color.id
+                                                className={`w-14 h-14 rounded-full transition-all duration-500 flex items-center justify-center border-2 overflow-hidden ${selectedColor?.id === color.id
                                                     ? 'border-neutral-900 shadow-xl'
                                                     : 'border-transparent hover:scale-110 opacity-90'
                                                     }`}
-                                                style={{ backgroundColor: color.hex }}
+                                                style={{ backgroundColor: color.image ? 'transparent' : color.hex }}
                                                 aria-label={color.name}
-                                            />
+                                            >
+                                                {color.image && (
+                                                    <div className="relative w-full h-full">
+                                                        <Image src={color.image} alt={color.name} fill className="object-cover" />
+                                                    </div>
+                                                )}
+                                            </button>
                                         ))}
                                     </div>
                                 </div>
@@ -345,6 +352,9 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                     </div>
                 </div>
             </div>
+
+            {/* REVIEWS SECTION */}
+            <ReviewSection productId={product.id} />
 
             {/* RECOMMENDED PRODUCTS SECTION */}
             <section className="py-16 md:py-32 bg-neutral-50 relative overflow-hidden">

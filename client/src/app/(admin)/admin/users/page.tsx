@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { Search, ShieldAlert, Loader2, UserCheck, Shield, User, UserPlus, X, Mail, CheckCircle2 } from 'lucide-react';
+import { Users, Filter, CheckCircle2, XCircle, MoreVertical, Mail, UserPlus, Shield } from 'lucide-react';
+import type { User } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function UsersManagementPage() {
@@ -35,7 +36,7 @@ export default function UsersManagementPage() {
         }
     });
 
-    const filtered = users.filter((u: any) =>
+    const filtered = users.filter((u: User) =>
         `${u.first_name} ${u.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
         u.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -64,8 +65,8 @@ export default function UsersManagementPage() {
                 setInviteData({ email: '', name: '', role: 'user' });
                 queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
             }, 2000);
-        } catch (err: any) {
-            setInviteError(err.message || 'Failed to send invitation.');
+        } catch (err: unknown) {
+            setInviteError((err as Error).message || 'Failed to send invitation.');
             setInvitationStatus('error');
         }
     };
@@ -133,7 +134,7 @@ export default function UsersManagementPage() {
                                             No users found matching your search.
                                         </td>
                                     </tr>
-                                ) : filtered.map((user: any) => (
+                                ) : filtered.map((user: User) => (
                                     <tr key={user.id} className="border-b border-neutral-50 last:border-0 hover:bg-neutral-50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">

@@ -2,7 +2,7 @@ const Joi = require('joi');
 
 /**
  * Middleware factory: validates req.body against a Joi schema.
- * Usage: router.post('/endpoint', validate(mySchema), controller)
+ * Returns { success: false, errors: { fieldName: "Human-readable message" } }
  */
 const validate = (schema) => {
     return (req, res, next) => {
@@ -12,13 +12,19 @@ const validate = (schema) => {
         });
 
         if (error) {
-            const details = error.details.map((d) => ({
-                field: d.path.join('.'),
-                message: d.message.replace(/"/g, ''),
-            }));
+            // Build field-keyed error object for frontend inline display
+            const errors = {};
+            error.details.forEach((d) => {
+                const field = d.path.join('.');
+                // Only keep first error per field
+                if (!errors[field]) {
+                    errors[field] = d.message.replace(/"/g, '');
+                }
+            });
             return res.status(400).json({
+                success: false,
                 error: 'Validation failed.',
-                details,
+                errors,
             });
         }
 
@@ -38,13 +44,17 @@ const validateQuery = (schema) => {
         });
 
         if (error) {
-            const details = error.details.map((d) => ({
-                field: d.path.join('.'),
-                message: d.message.replace(/"/g, ''),
-            }));
+            const errors = {};
+            error.details.forEach((d) => {
+                const field = d.path.join('.');
+                if (!errors[field]) {
+                    errors[field] = d.message.replace(/"/g, '');
+                }
+            });
             return res.status(400).json({
+                success: false,
                 error: 'Invalid query parameters.',
-                details,
+                errors,
             });
         }
 

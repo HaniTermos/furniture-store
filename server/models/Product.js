@@ -71,7 +71,7 @@ const Product = {
             params.push(maxPrice);
         }
         if (isFeatured !== undefined) {
-            conditions.push(`p.is_active = $${paramIdx++}`);
+            conditions.push(`p.is_featured = $${paramIdx++}`);
             params.push(isFeatured);
         }
 
@@ -152,8 +152,8 @@ const Product = {
         (SELECT url FROM product_images WHERE product_id = p.id AND is_primary = true LIMIT 1) AS primary_image,
         (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE product_id = p.id AND is_approved = true) AS avg_rating
        FROM products p
-       WHERE p.is_active = true
-       ORDER BY p.created_at DESC
+       WHERE p.is_featured = true AND p.is_active = true
+       ORDER BY p.updated_at DESC
        LIMIT $1`,
             [limit]
         );

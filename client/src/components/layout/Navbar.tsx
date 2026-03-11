@@ -36,7 +36,7 @@ export default function Navbar() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    const isDarkHeaderPage = pathname === '/' || pathname === '/shop' || pathname === '/about';
+    const isDarkHeaderPage = pathname === '/' || pathname === '/shop' || pathname === '/about' || (pathname?.startsWith('/shop/') && pathname.split('/').length > 2);
     const useDarkText = scrolled || !isDarkHeaderPage;
 
     return (

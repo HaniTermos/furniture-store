@@ -10,7 +10,18 @@ CREATE TABLE IF NOT EXISTS users (
     role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('admin', 'manager', 'user')),
     avatar_url TEXT,
     is_active BOOLEAN DEFAULT true,
+    email_verified BOOLEAN DEFAULT false,
     email_verified_at TIMESTAMP,
+    email_verification_token VARCHAR(255),
+    password_reset_token VARCHAR(255),
+    password_reset_expires TIMESTAMP,
+    last_login_ip VARCHAR(50),
+    failed_login_attempts INTEGER DEFAULT 0,
+    locked_until TIMESTAMP,
+    two_factor_secret VARCHAR(255),
+    two_factor_enabled BOOLEAN DEFAULT false,
+    preferences JSONB DEFAULT '{}'::jsonb,
+    google_id VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

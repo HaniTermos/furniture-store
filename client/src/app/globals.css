@@ -7,6 +7,29 @@
   --foreground: #111827;
   --primary-orange: #F97316;
   --primary-black: #1A1A1A;
+  --admin-bg: #FAF9F6;
+  --admin-card: #FFFFFF;
+  --admin-card-border: #E5E5E5;
+  --admin-sidebar: #FFFFFF;
+  --admin-sidebar-border: #E5E5E5;
+  --admin-text-primary: #171717;
+  --admin-text-secondary: #737373;
+  --admin-text-muted: #9CA3AF;
+  --accent-orange-alpha: rgba(249, 115, 22, 0.1);
+}
+
+.dark {
+  --background: #0A0A0A;
+  --foreground: #EDEDED;
+  --admin-bg: #050505;
+  --admin-card: #0F0F0F;
+  --admin-card-border: #1F1F1F;
+  --admin-sidebar: #0A0A0A;
+  --admin-sidebar-border: #1F1F1F;
+  --admin-text-primary: #EDEDED;
+  --admin-text-secondary: #A1A1AA;
+  --admin-text-muted: #52525B;
+  --accent-orange-alpha: rgba(249, 115, 22, 0.15);
 }
 
 /* ===== Lenis Smooth Scroll ===== */
@@ -101,30 +124,15 @@ body {
 /* ===== Component Layer ===== */
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 
-           bg-primary-orange text-white font-medium 
-           px-6 py-3 rounded-full 
-           transition-all duration-300 ease-out-expo 
-           hover:bg-primary-orange-hover hover:shadow-lg hover:shadow-orange-500/25 
-           active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 bg-primary-orange text-white font-medium px-6 py-3 rounded-full transition-all duration-300 ease-out-expo hover:bg-primary-orange-hover hover:shadow-lg hover:shadow-orange-500/25 active:scale-[0.98];
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 
-           bg-primary-black text-white font-medium 
-           px-6 py-3 rounded-full 
-           transition-all duration-300 ease-out-expo 
-           hover:bg-neutral-800 
-           active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 bg-primary-black text-white font-medium px-6 py-3 rounded-full transition-all duration-300 ease-out-expo hover:bg-neutral-800 active:scale-[0.98];
   }
 
   .btn-outline {
-    @apply inline-flex items-center justify-center gap-2 
-           border border-neutral-300 text-neutral-900 font-medium 
-           px-6 py-3 rounded-full 
-           transition-all duration-300 ease-out-expo 
-           hover:bg-neutral-100 hover:border-neutral-400 
-           active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 border border-neutral-300 text-neutral-900 font-medium px-6 py-3 rounded-full transition-all duration-300 ease-out-expo hover:bg-neutral-100 hover:border-neutral-400 active:scale-[0.98];
   }
 
   .section-padding {

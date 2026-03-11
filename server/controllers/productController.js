@@ -191,6 +191,10 @@ const productController = {
             if (!image) {
                 return res.status(404).json({ error: 'Image not found.' });
             }
+            // Clean up file from disk
+            if (image.url) {
+                imageService.delete(image.url).catch(() => {});
+            }
             res.json({ message: 'Image deleted.' });
         } catch (error) {
             next(error);

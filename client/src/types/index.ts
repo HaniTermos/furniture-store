@@ -113,7 +113,7 @@ export interface User {
     firstName: string;
     lastName: string;
     email: string;
-    role: 'customer' | 'admin' | 'manager';
+    role: 'customer' | 'admin' | 'manager' | 'super_admin';
     avatar?: string;
     createdAt: string;
 }
