@@ -3,8 +3,12 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+<<<<<<< HEAD
 import { Users, Filter, CheckCircle2, XCircle, MoreVertical, Mail, UserPlus, Shield } from 'lucide-react';
 import type { User } from '@/types';
+=======
+import { Users, Filter, CheckCircle2, XCircle, MoreVertical, Mail, UserPlus, Shield, Search, ShieldAlert, Loader2, UserCheck, X, User as UserIcon } from 'lucide-react';
+>>>>>>> d1d77d0 (dashboard and variants edits)
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function UsersManagementPage() {
@@ -36,9 +40,15 @@ export default function UsersManagementPage() {
         }
     });
 
+<<<<<<< HEAD
     const filtered = users.filter((u: User) =>
         `${u.first_name} ${u.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
         u.email.toLowerCase().includes(searchQuery.toLowerCase())
+=======
+    const filtered = users.filter((u: any) =>
+        (u.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (u.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+>>>>>>> d1d77d0 (dashboard and variants edits)
     );
 
     const handleRoleChange = (id: string, newRole: string) => {
@@ -134,14 +144,24 @@ export default function UsersManagementPage() {
                                             No users found matching your search.
                                         </td>
                                     </tr>
+<<<<<<< HEAD
                                 ) : filtered.map((user: User) => (
+=======
+                                ) : filtered.map((user: any) => (
+>>>>>>> d1d77d0 (dashboard and variants edits)
                                     <tr key={user.id} className="border-b border-neutral-50 last:border-0 hover:bg-neutral-50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-primary-orange/10 text-primary-orange flex items-center justify-center flex-shrink-0 font-bold">
+<<<<<<< HEAD
                                                     {user.first_name?.[0] || ''}{user.last_name?.[0] || ''}
                                                 </div>
                                                 <span className="font-medium">{user.first_name} {user.last_name}</span>
+=======
+                                                    {(user.name || '?')[0].toUpperCase()}
+                                                </div>
+                                                <span className="font-medium">{user.name}</span>
+>>>>>>> d1d77d0 (dashboard and variants edits)
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-neutral-500">{user.email}</td>
@@ -152,7 +172,11 @@ export default function UsersManagementPage() {
                                                 ) : user.role === 'manager' ? (
                                                     <UserCheck className="w-4 h-4 text-blue-500" />
                                                 ) : (
+<<<<<<< HEAD
                                                     <User className="w-4 h-4 text-neutral-400" />
+=======
+                                                    <UserIcon className="w-4 h-4 text-neutral-400" />
+>>>>>>> d1d77d0 (dashboard and variants edits)
                                                 )}
                                                 <span className={`font-medium capitalize ${user.role === 'admin' ? 'text-purple-600' :
                                                     user.role === 'manager' ? 'text-blue-600' : 'text-neutral-600'
@@ -164,7 +188,11 @@ export default function UsersManagementPage() {
                                         <td className="px-6 py-4">
                                             <button
                                                 onClick={() => handleStatusToggle(user.id, user.is_active)}
+<<<<<<< HEAD
                                                 disabled={statusMutation.isPending && statusMutation.variables?.id === user.id}
+=======
+                                                disabled={statusMutation.isPending && (statusMutation.variables as any)?.id === user.id}
+>>>>>>> d1d77d0 (dashboard and variants edits)
                                                 className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${user.is_active
                                                     ? 'bg-green-100 text-green-700 hover:bg-green-200 cursor-pointer'
                                                     : 'bg-red-100 text-red-700 hover:bg-red-200 cursor-pointer'
@@ -174,13 +202,21 @@ export default function UsersManagementPage() {
                                             </button>
                                         </td>
                                         <td className="px-6 py-4 text-neutral-400">
+<<<<<<< HEAD
                                             {new Date(user.created_at).toLocaleDateString()}
+=======
+                                            {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+>>>>>>> d1d77d0 (dashboard and variants edits)
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <select
                                                 value={user.role}
                                                 onChange={(e) => handleRoleChange(user.id, e.target.value)}
+<<<<<<< HEAD
                                                 disabled={roleMutation.isPending && roleMutation.variables?.id === user.id}
+=======
+                                            disabled={roleMutation.isPending && (roleMutation.variables as any)?.id === user.id}
+>>>>>>> d1d77d0 (dashboard and variants edits)
                                                 className="text-xs border border-neutral-200 rounded-lg px-2 py-1.5 bg-neutral-50 outline-none focus:border-primary-orange disabled:opacity-50"
                                             >
                                                 <option value="customer">Customer Role</option>
@@ -237,7 +273,11 @@ export default function UsersManagementPage() {
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-neutral-700">Full Name</label>
                                             <div className="relative">
+<<<<<<< HEAD
                                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+=======
+                                                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+>>>>>>> d1d77d0 (dashboard and variants edits)
                                                 <input
                                                     type="text"
                                                     required

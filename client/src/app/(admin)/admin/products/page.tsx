@@ -197,12 +197,31 @@ export default function AdminProductsPage() {
                                             )}
                                             <div>
                                                 <p className="font-medium truncate max-w-[200px]">{product.name}</p>
+<<<<<<< HEAD
                                                 {product.is_featured && <span className="text-[10px] font-semibold text-amber-600 uppercase">Featured</span>}
+=======
+                                                <div className="flex gap-1">
+                                                    {product.is_featured && <span className="text-[10px] font-semibold text-amber-600 uppercase">Featured</span>}
+                                                    {product.has_variants && <span className="text-[10px] font-semibold text-blue-600 uppercase border border-blue-200 px-1 rounded">Variants</span>}
+                                                </div>
+>>>>>>> d1d77d0 (dashboard and variants edits)
                                             </div>
                                         </div>
                                     </td>
                                     <td className="p-4 text-neutral-500 hidden md:table-cell font-mono text-xs">{product.sku}</td>
+<<<<<<< HEAD
                                     <td className="p-4 font-medium">${Number(product.base_price).toFixed(2)}</td>
+=======
+                                    <td className="p-4 font-medium">
+                                        {product.has_variants && product.price_range ? (
+                                            <span className="text-neutral-900">
+                                                ${Number(product.price_range.min).toFixed(0)} - ${Number(product.price_range.max).toFixed(0)}
+                                            </span>
+                                        ) : (
+                                            `$${Number(product.base_price).toFixed(2)}`
+                                        )}
+                                    </td>
+>>>>>>> d1d77d0 (dashboard and variants edits)
                                     <td className="p-4 text-neutral-500 hidden lg:table-cell">{product.category_name || '—'}</td>
                                     <td className="p-4">
                                         <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${product.is_active ? statusColors.active : statusColors.inactive

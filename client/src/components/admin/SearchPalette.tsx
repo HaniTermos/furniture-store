@@ -73,7 +73,11 @@ export default function SearchPalette() {
     if (!open) return null;
 
     return (
+<<<<<<< HEAD
         <div className="fixed inset-0 z-[var(--z-search-palette)] flex items-start justify-center pt-[15vh] p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+=======
+        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+>>>>>>> d1d77d0 (dashboard and variants edits)
             <div className="fixed inset-0" onClick={() => setOpen(false)} />
 
             <div className="relative w-full max-w-2xl bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden animate-in slide-in-from-top-4 duration-300">

@@ -23,7 +23,11 @@ const cartController = {
     async addItem(req, res, next) {
         const client = await pool.connect();
         try {
+<<<<<<< HEAD
             const { product_id, quantity = 1, configuration } = req.body;
+=======
+            const { product_id, variant_id, quantity = 1, configuration } = req.body;
+>>>>>>> d1d77d0 (dashboard and variants edits)
 
             await client.query('BEGIN'); // Start transaction
 
@@ -34,12 +38,29 @@ const cartController = {
                 return res.status(404).json({ error: 'Product not found.' });
             }
 
+<<<<<<< HEAD
             // Calculate unit price with configuration
             const { totalPrice } = await priceService.calculatePrice(product.base_price, configuration);
+=======
+            // Calculate unit price with configuration if no variant is provided
+            let totalPrice;
+            if (variant_id) {
+                // If variant_id is provided, CartItem.add will fetch and use the variant's price directly.
+                // We pass 0 here as a fallback, but CartItem will overwrite it.
+                totalPrice = 0;
+            } else {
+                const priceResult = await priceService.calculatePrice(product.base_price, configuration);
+                totalPrice = priceResult.totalPrice;
+            }
+>>>>>>> d1d77d0 (dashboard and variants edits)
 
             const item = await CartItem.add({
                 user_id: req.user.id,
                 product_id,
+<<<<<<< HEAD
+=======
+                variant_id,
+>>>>>>> d1d77d0 (dashboard and variants edits)
                 quantity,
                 configuration,
                 unit_price: totalPrice,

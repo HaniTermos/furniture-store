@@ -9,6 +9,10 @@ import { Product } from '@/types';
 import { useCurrency } from '@/hooks/useCurrency';
 import { useCartStore } from '@/store/cart';
 import { useWishlistStore } from '@/store/wishlist';
+<<<<<<< HEAD
+=======
+import PriceDisplay from '@/components/product/PriceDisplay';
+>>>>>>> d1d77d0 (dashboard and variants edits)
 
 interface ProductCardProps {
     product: Product;
@@ -46,6 +50,10 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                         src={hoveredImage || product.images[0]?.url || '/images/placeholder.png'}
                         alt={product.name}
                         fill
+<<<<<<< HEAD
+=======
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+>>>>>>> d1d77d0 (dashboard and variants edits)
                         className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out-expo"
                     />
 
@@ -66,6 +74,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                     {/* Hover Actions */}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
                     <div className="absolute bottom-3 left-3 right-3 flex gap-2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+<<<<<<< HEAD
                         <motion.button
                             whileTap={{ scale: 0.95 }}
                             onClick={(e) => {
@@ -77,6 +86,29 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                             <ShoppingCart className="w-4 h-4" />
                             Add to Cart
                         </motion.button>
+=======
+                        {product.has_variants ? (
+                            <Link
+                                href={`/shop/${product.slug}`}
+                                className="flex-1 bg-white text-primary-black text-sm font-medium py-2.5 rounded-full hover:bg-neutral-900 hover:text-white transition-colors duration-200 flex items-center justify-center gap-2"
+                            >
+                                <ArrowUpRight className="w-4 h-4" />
+                                View Options
+                            </Link>
+                        ) : (
+                            <motion.button
+                                whileTap={{ scale: 0.95 }}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    addItem(product, 1, product.colors[0]);
+                                }}
+                                className="flex-1 bg-white text-primary-black text-sm font-medium py-2.5 rounded-full hover:bg-primary-orange hover:text-white transition-colors duration-200 flex items-center justify-center gap-2"
+                            >
+                                <ShoppingCart className="w-4 h-4" />
+                                Add to Cart
+                            </motion.button>
+                        )}
+>>>>>>> d1d77d0 (dashboard and variants edits)
                         <motion.button
                             whileTap={{ scale: 0.95 }}
                             onClick={toggleWishlist}
@@ -98,9 +130,13 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                     </div>
                     <div className="mt-auto pt-2 space-y-2">
                         <div className="flex items-center gap-2">
+<<<<<<< HEAD
                             <span className="font-semibold text-neutral-900">
                                 {formatPrice(product.price).display}
                             </span>
+=======
+                            <PriceDisplay product={product} />
+>>>>>>> d1d77d0 (dashboard and variants edits)
                             {product.originalPrice && (
                                 <span className="text-sm text-neutral-400 line-through">
                                     {formatPrice(product.originalPrice).display}

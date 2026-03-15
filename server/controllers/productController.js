@@ -2,8 +2,16 @@ const Product = require('../models/Product');
 const ProductImage = require('../models/ProductImage');
 const ConfigurationOption = require('../models/ConfigurationOption');
 const Review = require('../models/Review');
+<<<<<<< HEAD
 const { generateSlug, generateUniqueSlug } = require('../utils/generateSlug');
 const imageService = require('../services/imageService');
+=======
+const ProductVariant = require('../models/ProductVariant');
+const Attribute = require('../models/Attribute');
+const { generateSlug, generateUniqueSlug } = require('../utils/generateSlug');
+const imageService = require('../services/imageService');
+const { validateMagicBytes } = require('../middleware/upload');
+>>>>>>> d1d77d0 (dashboard and variants edits)
 
 const productController = {
     /**
@@ -25,10 +33,22 @@ const productController = {
 
             if (result.products.length > 0) {
                 const productIds = result.products.map(p => p.id);
+<<<<<<< HEAD
                 const optionsMap = await ConfigurationOption.findWithValuesByProductIds(productIds);
                 result.products = result.products.map(p => ({
                     ...p,
                     configuration_options: optionsMap[p.id] || []
+=======
+                // Fetch legacy options (backward compat)
+                const optionsMap = await ConfigurationOption.findWithValuesByProductIds(productIds);
+                // Fetch new system attributes
+                const attributesMap = await Attribute.findWithValuesByProductIds(productIds);
+
+                result.products = result.products.map(p => ({
+                    ...p,
+                    configuration_options: optionsMap[p.id] || [],
+                    attributes: attributesMap[p.id] || []
+>>>>>>> d1d77d0 (dashboard and variants edits)
                 }));
             }
 
@@ -79,18 +99,38 @@ const productController = {
                 return res.status(404).json({ error: 'Product not found.' });
             }
 
+<<<<<<< HEAD
             // Get images, options, reviews
             const [images, options, reviewData] = await Promise.all([
                 ProductImage.findByProduct(product.id),
                 ConfigurationOption.findWithValues(product.id),
                 Review.findByProduct(product.id, { page: 1, limit: 5 }),
+=======
+            // Get images, options, reviews, variants, and attributes
+            const [images, options, reviewData, variants, attributes] = await Promise.all([
+                ProductImage.findByProduct(product.id),
+                ConfigurationOption.findWithValues(product.id),
+                Review.findByProduct(product.id, { page: 1, limit: 5 }),
+                ProductVariant.findByProduct(product.id),
+                Attribute.getProductAttributes(product.id),
+>>>>>>> d1d77d0 (dashboard and variants edits)
             ]);
 
             // Get related products
             const related = await Product.getRelated(product.id, product.category_id, 4);
 
             res.json({
+<<<<<<< HEAD
                 product: { ...product, images, configuration_options: options },
+=======
+                product: { 
+                    ...product, 
+                    images, 
+                    configuration_options: options,
+                    variants,
+                    attributes
+                },
+>>>>>>> d1d77d0 (dashboard and variants edits)
                 reviews: reviewData,
                 relatedProducts: related,
             });
@@ -100,6 +140,47 @@ const productController = {
     },
 
     /**
+<<<<<<< HEAD
+=======
+     * GET /api/products/filters
+     * Returns all unique attribute option names + values across active products
+     */
+    async getFilters(req, res, next) {
+        try {
+            const pool = require('../db/pool');
+            const { rows } = await pool.query(`
+                SELECT DISTINCT co.name AS option_name, co.type, cv.value, cv.image_url
+                FROM configuration_options co
+                JOIN configuration_values cv ON cv.option_id = co.id
+                JOIN products p ON p.id = co.product_id
+                WHERE p.is_active = true
+                ORDER BY co.name, cv.value
+            `);
+
+            // Group by option name
+            const filtersMap = new Map();
+            for (const row of rows) {
+                if (!filtersMap.has(row.option_name)) {
+                    filtersMap.set(row.option_name, {
+                        name: row.option_name,
+                        type: row.type,
+                        values: []
+                    });
+                }
+                filtersMap.get(row.option_name).values.push({
+                    value: row.value,
+                    image_url: row.image_url || null
+                });
+            }
+
+            res.json({ filters: Array.from(filtersMap.values()) });
+        } catch (error) {
+            next(error);
+        }
+    },
+
+    /**
+>>>>>>> d1d77d0 (dashboard and variants edits)
      * POST /api/products (Admin)
      */
     async create(req, res, next) {
@@ -167,6 +248,16 @@ const productController = {
                 return res.status(400).json({ error: 'No image file provided.' });
             }
 
+<<<<<<< HEAD
+=======
+            // Validate magic bytes to prevent spoofed Content-Type bypass
+            try {
+                validateMagicBytes(req.file.path);
+            } catch (err) {
+                return res.status(400).json({ error: err.message });
+            }
+
+>>>>>>> d1d77d0 (dashboard and variants edits)
             const result = await imageService.upload(req.file, 'furniture-store/products');
             const image = await ProductImage.create({
                 product_id: req.params.id,

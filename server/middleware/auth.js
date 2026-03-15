@@ -33,6 +33,17 @@ const auth = async (req, res, next) => {
             return res.status(403).json({ error: 'Account has been deactivated.' });
         }
 
+<<<<<<< HEAD
+=======
+        // Invalidate tokens issued before a password change
+        if (user.password_changed_at) {
+            const passwordChangedAt = Math.floor(new Date(user.password_changed_at).getTime() / 1000);
+            if (decoded.iat < passwordChangedAt) {
+                return res.status(401).json({ error: 'Password was recently changed. Please log in again.' });
+            }
+        }
+
+>>>>>>> d1d77d0 (dashboard and variants edits)
         req.user = user;
         next();
     } catch (error) {

@@ -63,6 +63,7 @@ passport.use(
                     return done(null, false, { message: 'Invalid email or password.' });
                 }
 
+<<<<<<< HEAD
                 // Success — reset counters
                 await User.resetFailedLogin(user.id);
                 return done(null, user);
@@ -88,12 +89,47 @@ passport.use(
                 }
                 return done(null, user);
             } catch (error) {
+=======
+                // Reset failed attempts on successful login
+                await User.resetFailedLogin(user.id);
+                return done(null, user);
+            } catch (error) {
+>>>>>>> d1d77d0 (dashboard and variants edits)
                 return done(error, false);
             }
         }
     )
 );
 
+<<<<<<< HEAD
+=======
+// ─── JWT Strategy ────────────────────────────────────────────
+if (process.env.JWT_SECRET) {
+    passport.use(
+        new JwtStrategy(
+            {
+                jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+                secretOrKey: process.env.JWT_SECRET,
+            },
+            async (jwtPayload, done) => {
+                try {
+                    const user = await User.findById(jwtPayload.id);
+                    if (!user) {
+                        return done(null, false);
+                    }
+                    if (!user.is_active) {
+                        return done(null, false);
+                    }
+                    return done(null, user);
+                } catch (error) {
+                    return done(error, false);
+                }
+            }
+        )
+    );
+}
+
+>>>>>>> d1d77d0 (dashboard and variants edits)
 // ─── Google OAuth 2.0 Strategy ──────────────────────────────
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     passport.use(
@@ -120,7 +156,10 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 
                     // Check if user exists by Google ID
                     let user = await User.findByGoogleId(profile.id);
+<<<<<<< HEAD
 
+=======
+>>>>>>> d1d77d0 (dashboard and variants edits)
                     if (user) {
                         return done(null, user);
                     }

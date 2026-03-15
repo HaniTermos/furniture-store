@@ -1,7 +1,11 @@
 'use client';
 
+<<<<<<< HEAD
 import { useState } from 'react';
 import { Plus, X, Settings2, Check, AlertCircle } from 'lucide-react';
+=======
+import { Plus, X, Settings2 } from 'lucide-react';
+>>>>>>> d1d77d0 (dashboard and variants edits)
 
 interface GlobalAttribute {
     id: string;
@@ -13,7 +17,10 @@ interface GlobalAttribute {
 interface SelectedAttribute {
     attribute_id: string;
     value_id: string;
+<<<<<<< HEAD
     is_variation_maker: boolean;
+=======
+>>>>>>> d1d77d0 (dashboard and variants edits)
 }
 
 interface AttributeSelectionProps {
@@ -26,13 +33,17 @@ export default function AttributeSelection({ availableAttributes, selectedAttrib
     const handleAddAttribute = () => {
         if (availableAttributes.length === 0) return;
 
+<<<<<<< HEAD
         // Find an attribute not already fully selected? Or just allow adding another row
+=======
+>>>>>>> d1d77d0 (dashboard and variants edits)
         const firstAttr = availableAttributes[0];
         const newVal = firstAttr.values.length > 0 ? firstAttr.values[0].id : '';
 
         onChange([...selectedAttributes, {
             attribute_id: firstAttr.id,
             value_id: newVal,
+<<<<<<< HEAD
             is_variation_maker: false
         }]);
     };
@@ -41,15 +52,31 @@ export default function AttributeSelection({ availableAttributes, selectedAttrib
         const next = [...selectedAttributes];
 
         // If changing attribute_id, reset value_id
+=======
+        }]);
+    };
+
+    const updateSelected = (index: number, field: 'attribute_id' | 'value_id', val: string) => {
+        const next = [...selectedAttributes];
+
+>>>>>>> d1d77d0 (dashboard and variants edits)
         if (field === 'attribute_id') {
             const attr = availableAttributes.find(a => a.id === val);
             next[index] = {
                 ...next[index],
+<<<<<<< HEAD
                 [field]: val,
                 value_id: attr?.values[0]?.id || ''
             };
         } else {
             next[index] = { ...next[index], [field]: val };
+=======
+                attribute_id: val,
+                value_id: attr?.values[0]?.id || '',
+            };
+        } else {
+            next[index] = { ...next[index], value_id: val };
+>>>>>>> d1d77d0 (dashboard and variants edits)
         }
 
         onChange(next);
@@ -112,6 +139,7 @@ export default function AttributeSelection({ availableAttributes, selectedAttrib
                                 </select>
                             </div>
 
+<<<<<<< HEAD
                             <div className="flex items-center gap-3 pt-4 sm:pt-6">
                                 <label className="flex items-center gap-2 cursor-pointer group/toggle whitespace-nowrap">
                                     <div className="relative">
@@ -127,6 +155,9 @@ export default function AttributeSelection({ availableAttributes, selectedAttrib
                                     <span className="text-xs font-semibold text-neutral-600">Creates Variation</span>
                                 </label>
 
+=======
+                            <div className="flex items-center pt-4 sm:pt-6">
+>>>>>>> d1d77d0 (dashboard and variants edits)
                                 <button
                                     type="button"
                                     onClick={() => removeSelected(idx)}
@@ -149,9 +180,15 @@ export default function AttributeSelection({ availableAttributes, selectedAttrib
             </div>
 
             <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50 flex items-start gap-3">
+<<<<<<< HEAD
                 <AlertCircle className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                 <p className="text-xs text-blue-700 leading-relaxed">
                     <strong>Pro Tip:</strong> Enabling "Creates Variation" allows you to set unique prices, stock, and images for each combination of this attribute in the Variations tab.
+=======
+                <Settings2 className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-blue-700 leading-relaxed">
+                    <strong>Pro Tip:</strong> Global attributes (Material, Finish, Style) describe the product&apos;s properties. For purchasable options with stock (Color, Size), use the <strong>Variations &amp; Stock</strong> section below.
+>>>>>>> d1d77d0 (dashboard and variants edits)
                 </p>
             </div>
         </div>

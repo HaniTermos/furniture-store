@@ -70,6 +70,10 @@ export default function Footer() {
                                     src="/images/logo.png"
                                     alt="High Tech Wood"
                                     fill
+<<<<<<< HEAD
+=======
+                                    sizes="40px"
+>>>>>>> d1d77d0 (dashboard and variants edits)
                                     className="object-contain brightness-0 invert"
                                 />
                             </div>

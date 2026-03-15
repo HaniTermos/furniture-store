@@ -20,6 +20,11 @@ import { useCartStore } from '@/store/cart';
 import { Reveal } from '@/components/motion/Reveal';
 import ProductCard from '@/components/product/ProductCard';
 import ReviewSection from '@/components/product/ReviewSection';
+<<<<<<< HEAD
+=======
+import VariantSelector from '@/components/product/VariantSelector';
+import PriceDisplay from '@/components/product/PriceDisplay';
+>>>>>>> d1d77d0 (dashboard and variants edits)
 
 
 
@@ -33,8 +38,12 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
     const relatedProducts = data?.relatedProducts || [];
 
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+<<<<<<< HEAD
     const [selectedColorId, setSelectedColorId] = useState<string | null>(null);
     const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
+=======
+    const [selectedVariant, setSelectedVariant] = useState<any>(null);
+>>>>>>> d1d77d0 (dashboard and variants edits)
     const [quantity, setQuantity] = useState(1);
     const { formatPrice } = useCurrency();
     const addItem = useCartStore((s) => s.addItem);
@@ -62,6 +71,7 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
         );
     }
 
+<<<<<<< HEAD
     const selectedColor = product.colors.find(c => c.id === selectedColorId) || product.colors[0];
     const selectedSize = product.sizes.find(s => s.id === selectedSizeId) || product.sizes[0];
 
@@ -69,6 +79,21 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
     const allImages = [...(product.images || [])];
     const currentImage = selectedColor?.image || allImages[selectedImageIndex]?.url;
     const finalPrice = product.price + (selectedSize?.priceAdjustment || 0);
+=======
+    // Check if product has variants (new system) or configuration_options (old system)
+    const hasVariants = product.variants && product.variants.length > 0;
+    const hasConfigOptions = product.configuration_options && product.configuration_options.length > 0;
+    const productAttributes = product.attributes || [];
+    
+    // Transform configuration_options to a format the UI can display
+    const displayConfigOptions = hasConfigOptions ? product.configuration_options : [];
+
+    // Images logic
+    const allImages = [...(product.images || [])];
+    const currentImage = selectedVariant?.image_url || allImages[selectedImageIndex]?.url || '/images/placeholder.png';
+    const finalPrice = selectedVariant?.price || product.base_price || product.price || 0;
+    const availableStock = selectedVariant?.stock_quantity || product.stock_quantity || 0;
+>>>>>>> d1d77d0 (dashboard and variants edits)
 
     // Handle 360 rotation
     const handleMouseDown = () => setIsRotating(true);
@@ -95,12 +120,29 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
     };
 
     const handleAddToCart = () => {
+<<<<<<< HEAD
         if (quantity > 0) {
             addItem(product, quantity, selectedColor, selectedSize);
+=======
+        if (quantity > 0 && (!hasVariants || selectedVariant)) {
+            addItem(product, quantity, undefined, undefined, selectedVariant || undefined);
+>>>>>>> d1d77d0 (dashboard and variants edits)
             openCart();
         }
     };
 
+<<<<<<< HEAD
+=======
+    const handleVariantSelect = (variant: any) => {
+        setSelectedVariant(variant);
+    };
+
+    const handleAddVariantToCart = (variant: any, qty: number) => {
+        addItem(product, qty, undefined, undefined, variant);
+        openCart();
+    };
+
+>>>>>>> d1d77d0 (dashboard and variants edits)
     return (
         <main className="min-h-screen bg-[#F9F8F3]">
             {/* Header Spacer - Dark to make navbar text visible */}
@@ -130,8 +172,13 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                                     </h1>
                                     <div className="mt-4 sm:mt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                         <div className="flex items-baseline gap-2">
+<<<<<<< HEAD
                                             <span className="text-3xl font-light text-neutral-300 italic">{product.available || '13'}/100</span>
                                             <span className="text-[10px] text-neutral-400 uppercase tracking-[0.3em] font-bold">Available</span>
+=======
+                                            <span className="text-3xl font-light text-neutral-300 italic">{product.available ?? 0}</span>
+                                            <span className="text-[10px] text-neutral-400 uppercase tracking-[0.3em] font-bold">In Stock</span>
+>>>>>>> d1d77d0 (dashboard and variants edits)
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <button
@@ -174,6 +221,10 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                                                         src={img.url}
                                                         alt={img.alt || product.name}
                                                         fill
+<<<<<<< HEAD
+=======
+                                                        sizes="(max-width: 1024px) 33vw, 120px"
+>>>>>>> d1d77d0 (dashboard and variants edits)
                                                         className="object-cover"
                                                     />
                                                 </button>
@@ -182,6 +233,7 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                                     </div>
                                 )}
 
+<<<<<<< HEAD
                                 {/* Color Swatches - Advanced (Image/RGB) */}
                                 <div className="mt-auto pb-12">
                                     <div className="flex gap-5 flex-wrap">
@@ -204,6 +256,81 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                                             </button>
                                         ))}
                                     </div>
+=======
+                                {/* Variant Selector or Configuration Options or Color Swatches */}
+                                <div className="mt-auto pb-12">
+                                    {hasVariants ? (
+                                        <VariantSelector
+                                            variants={product.variants || []}
+                                            attributes={productAttributes}
+                                            basePrice={product.base_price || product.price || 0}
+                                            onVariantSelect={handleVariantSelect}
+                                            onAddToCart={handleAddVariantToCart}
+                                        />
+                                    ) : hasConfigOptions ? (
+                                        /* Configuration Options from admin dashboard */
+                                        <div className="space-y-6">
+                                            {(displayConfigOptions || []).map((opt: any) => (
+                                                <div key={opt.id} className="space-y-3">
+                                                    <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400">
+                                                        {opt.name}
+                                                    </h3>
+                                                    <div className="flex flex-wrap gap-3">
+                                                        {(opt.values || []).map((val: any) => {
+                                                            const isColor = opt.type === 'color' && val.value?.includes('|');
+                                                            const [colorName, colorHex] = isColor ? val.value.split('|') : [val.value, ''];
+                                                            
+                                                            return (
+                                                                <button
+                                                                    key={val.id}
+                                                                    className="group relative flex flex-col items-center gap-1"
+                                                                    title={`${colorName || val.value} (+$${val.price_adjustment || 0}) - Stock: ${val.stock_quantity || 0}`}
+                                                                >
+                                                                    {isColor ? (
+                                                                        <div
+                                                                            className="w-12 h-12 rounded-full border-2 border-neutral-200 group-hover:border-neutral-900 transition-all shadow-sm"
+                                                                            style={{ backgroundColor: colorHex }}
+                                                                        />
+                                                                    ) : (
+                                                                        <div className="px-4 py-2 rounded-lg border border-neutral-200 bg-white text-sm font-medium group-hover:border-neutral-900 transition-all">
+                                                                            {val.value}
+                                                                        </div>
+                                                                    )}
+                                                                    {(val.price_adjustment > 0 || val.stock_quantity < 5) && (
+                                                                        <span className="text-[10px] text-neutral-400">
+                                                                            {val.price_adjustment > 0 && `+$${val.price_adjustment}`}
+                                                                            {val.price_adjustment > 0 && val.stock_quantity < 5 && ' • '}
+                                                                            {val.stock_quantity < 5 && `${val.stock_quantity} left`}
+                                                                        </span>
+                                                                    )}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        /* Legacy: Color Swatches - Advanced (Image/RGB) */
+                                        <div className="flex gap-5 flex-wrap">
+                                            {(product.colors || []).map((color: any) => (
+                                                <button
+                                                    key={color.id}
+                                                    onClick={() => {}}
+                                                    className="w-14 h-14 rounded-full transition-all duration-500 flex items-center justify-center border-2 overflow-hidden border-transparent hover:scale-110 opacity-90"
+                                                    style={{ backgroundColor: color.image ? 'transparent' : color.hex }}
+                                                    aria-label={color.name}
+                                                >
+                                                    {color.image && (
+                                                        <div className="relative w-full h-full">
+                                                            <Image src={color.image} alt={color.name} fill sizes="56px" className="object-cover" />
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+>>>>>>> d1d77d0 (dashboard and variants edits)
                                 </div>
                             </div>
                         </Reveal>
@@ -240,6 +367,10 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                                             src={currentImage || '/images/placeholder.png'}
                                             alt={product.name}
                                             fill
+<<<<<<< HEAD
+=======
+                                            sizes="(max-width: 1024px) 100vw, 50vw"
+>>>>>>> d1d77d0 (dashboard and variants edits)
                                             className="object-contain"
                                             priority
                                             draggable={false}
@@ -270,13 +401,18 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                                     </p>
                                 </div>
 
+<<<<<<< HEAD
                                 {/* Product Detail - Simple List */}
+=======
+                            {/* Product Detail - Simple List */}
+>>>>>>> d1d77d0 (dashboard and variants edits)
                                 <div className="flex-1">
                                     <h2 className="text-[12px] font-bold uppercase tracking-[0.3em] text-neutral-900 mb-8">
                                         Product Detail
                                     </h2>
 
                                     <div className="space-y-4">
+<<<<<<< HEAD
                                         {Object.entries(product.details).map(([key, value]) => (
                                             <div key={key} className="flex items-start justify-between border-b border-neutral-900/[0.05] pb-3 last:border-0">
                                                 <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest pt-0.5">{key}</span>
@@ -285,6 +421,43 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                                                 </span>
                                             </div>
                                         ))}
+=======
+                                        {product.details && Object.entries(product.details).map(([key, value]) => (
+                                            <div key={key} className="flex items-start justify-between border-b border-neutral-900/[0.05] pb-3 last:border-0">
+                                                <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest pt-0.5">{key}</span>
+                                                <span className="text-[11px] text-neutral-600 font-light text-right max-w-[180px] leading-tight">
+                                                    {value as string}
+                                                </span>
+                                            </div>
+                                        ))}
+                                        
+                                        {/* Show configuration_options as attributes if no variants */}
+                                        {!hasVariants && hasConfigOptions && displayConfigOptions && (
+                                            displayConfigOptions.map((opt: any) => (
+                                                <div key={opt.id} className="flex items-start justify-between border-b border-neutral-900/[0.05] pb-3 last:border-0">
+                                                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest pt-0.5">{opt.name}</span>
+                                                    <span className="text-[11px] text-neutral-600 font-light text-right max-w-[180px] leading-tight">
+                                                        {(opt.values || []).map((v: any) => {
+                                                            const val = v.value?.includes('|') ? v.value.split('|')[0] : v.value;
+                                                            return val;
+                                                        }).join(', ')}
+                                                    </span>
+                                                </div>
+                                            ))
+                                        )}
+                                        
+                                        {/* Show attributes if no variants and no config options */}
+                                        {!hasVariants && !hasConfigOptions && productAttributes.length > 0 && (
+                                            productAttributes.map((attr: any) => (
+                                                <div key={attr.id} className="flex items-start justify-between border-b border-neutral-900/[0.05] pb-3 last:border-0">
+                                                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest pt-0.5">{attr.name}</span>
+                                                    <span className="text-[11px] text-neutral-600 font-light text-right max-w-[180px] leading-tight">
+                                                        {attr.options?.map((o: any) => o.value).join(', ')}
+                                                    </span>
+                                                </div>
+                                            ))
+                                        )}
+>>>>>>> d1d77d0 (dashboard and variants edits)
                                     </div>
                                 </div>
                             </div>
@@ -327,6 +500,7 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                             {/* Right: Pricing & CTA */}
                             <div className="flex items-center gap-4 md:gap-12">
                                 <div className="flex items-baseline gap-2 md:gap-4">
+<<<<<<< HEAD
                                     {product.originalPrice && (
                                         <span className="text-neutral-500 line-through text-lg md:text-2xl font-light hidden sm:inline">
                                             {formatPrice(product.originalPrice).display}
@@ -346,6 +520,43 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                                     <span className="sm:hidden">Add</span>
                                     <ArrowRight className="w-5 h-5 md:w-6 md:h-6 stroke-[1px]" />
                                 </motion.button>
+=======
+                                    {product.original_price && (
+                                        <span className="text-neutral-500 line-through text-lg md:text-2xl font-light hidden sm:inline">
+                                            {formatPrice(product.original_price).display}
+                                        </span>
+                                    )}
+                                    {(!hasVariants || selectedVariant) ? (
+                                        <span className="text-base md:text-4xl font-light tracking-tighter">
+                                            {formatPrice(finalPrice * quantity).display}
+                                        </span>
+                                    ) : (
+                                        <PriceDisplay product={product} className="text-base md:text-4xl font-light tracking-tighter" />
+                                    )}
+                                </div>
+
+                                {hasVariants ? (
+                                    /* Variants are handled by VariantSelector component */
+                                    <div className="flex items-center gap-2 text-sm text-white/70">
+                                        <span>Select options above</span>
+                                    </div>
+                                ) : (
+                                    <motion.button
+                                        whileHover={{ x: 5 }}
+                                        onClick={handleAddToCart}
+                                        disabled={availableStock <= 0}
+                                        className="flex items-center gap-2 md:gap-4 text-sm md:text-xl font-light tracking-tight hover:text-white/70 transition-colors border-l border-white/10 pl-4 md:pl-12 h-12 md:h-16 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <span className="hidden sm:inline">
+                                            {availableStock > 0 ? 'Add to cart' : 'Out of Stock'}
+                                        </span>
+                                        <span className="sm:hidden">
+                                            {availableStock > 0 ? 'Add' : 'Out of Stock'}
+                                        </span>
+                                        <ArrowRight className="w-5 h-5 md:w-6 md:h-6 stroke-[1px]" />
+                                    </motion.button>
+                                )}
+>>>>>>> d1d77d0 (dashboard and variants edits)
                             </div>
 
                         </div>
@@ -386,6 +597,10 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                     <span className="text-[30vw] font-bold whitespace-nowrap leading-none uppercase italic">Exclusive</span>
                 </div>
             </section>
+<<<<<<< HEAD
         </main >
+=======
+        </main>
+>>>>>>> d1d77d0 (dashboard and variants edits)
     );
 }

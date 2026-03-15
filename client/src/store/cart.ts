@@ -7,7 +7,11 @@ interface CartStore {
     isOpen: boolean;
 
     // Actions
+<<<<<<< HEAD
     addItem: (product: Product, quantity?: number, color?: ProductColor, size?: ProductSize) => void;
+=======
+    addItem: (product: Product, quantity?: number, color?: ProductColor, size?: ProductSize, variant?: ProductVariant) => void;
+>>>>>>> d1d77d0 (dashboard and variants edits)
     removeItem: (id: string) => void;
     updateQuantity: (id: string, quantity: number) => void;
     clearCart: () => void;
@@ -26,9 +30,15 @@ export const useCartStore = create<CartStore>()(
             items: [],
             isOpen: false,
 
+<<<<<<< HEAD
             addItem: (product, quantity = 1, color, size) => {
                 const items = get().items;
                 const itemId = `${product.id}-${color?.id || 'default'}-${size?.id || 'default'}`;
+=======
+            addItem: (product, quantity = 1, color, size, variant) => {
+                const items = get().items;
+                const itemId = variant ? `${product.id}-${variant.id}` : `${product.id}-${color?.id || 'default'}-${size?.id || 'default'}`;
+>>>>>>> d1d77d0 (dashboard and variants edits)
                 const existingItem = items.find((item) => item.id === itemId);
 
                 if (existingItem) {
@@ -49,6 +59,10 @@ export const useCartStore = create<CartStore>()(
                                 quantity,
                                 selectedColor: color,
                                 selectedSize: size,
+<<<<<<< HEAD
+=======
+                                variant,
+>>>>>>> d1d77d0 (dashboard and variants edits)
                             },
                         ],
                     });
@@ -78,8 +92,16 @@ export const useCartStore = create<CartStore>()(
             totalItems: () => get().items.reduce((sum, item) => sum + item.quantity, 0),
             subtotal: () =>
                 get().items.reduce((sum, item) => {
+<<<<<<< HEAD
                     const sizeAdjustment = item.selectedSize?.priceAdjustment || 0;
                     return sum + (item.product.price + sizeAdjustment) * item.quantity;
+=======
+                    if (item.variant) {
+                        return sum + Number(item.variant.price) * item.quantity;
+                    }
+                    const sizeAdjustment = item.selectedSize?.priceAdjustment || 0;
+                    return sum + (Number(item.product.base_price || item.product.price || 0) + sizeAdjustment) * item.quantity;
+>>>>>>> d1d77d0 (dashboard and variants edits)
                 }, 0),
         }),
         {

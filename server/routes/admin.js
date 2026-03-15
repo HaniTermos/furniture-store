@@ -13,6 +13,7 @@ const attributeController = require('../controllers/attributeController'); // Ad
 const sizeGuideController = require('../controllers/sizeGuideController');
 const { categorySchema, categoryUpdateSchema } = require('../validation/categorySchemas');
 const { orderStatusSchema } = require('../validation/orderSchemas');
+<<<<<<< HEAD
 const { productSchema, productUpdateSchema } = require('../validation/productSchemas');
 const upload = require('../middleware/upload');
 
@@ -20,6 +21,12 @@ const { adminLimiter } = require('../middleware/rateLimiter');
 
 // All admin routes require auth + admin/manager role
 router.use(auth, admin, adminLimiter);
+=======
+const upload = require('../middleware/upload');
+
+// All admin routes require auth + admin/manager role
+router.use(auth, admin);
+>>>>>>> d1d77d0 (dashboard and variants edits)
 
 // ─── Dashboard & Analytics ──────────────────────────────────
 router.get('/dashboard', adminController.getDashboard);
@@ -27,9 +34,15 @@ router.get('/analytics/sales', adminController.getSalesAnalytics);
 
 // ─── Products ───────────────────────────────────────────────
 router.get('/products', adminController.getProducts);
+<<<<<<< HEAD
 router.post('/products', validate(productSchema), adminController.createProduct);
 router.get('/products/:id', adminController.getProductDetail);
 router.put('/products/:id', validate(productUpdateSchema), adminController.updateProduct);
+=======
+router.post('/products', adminController.createProduct);
+router.get('/products/:id', adminController.getProductDetail);
+router.put('/products/:id', adminController.updateProduct);
+>>>>>>> d1d77d0 (dashboard and variants edits)
 router.delete('/products/:id', adminController.deleteProduct);
 router.post('/products/:id/duplicate', adminController.duplicateProduct);
 router.post('/products/bulk-delete', adminController.bulkDeleteProducts);
@@ -79,6 +92,14 @@ router.post('/attributes/:attributeId/values', attributeController.createValue);
 router.put('/attributes/:attributeId/values/:valueId', attributeController.updateValue);
 router.delete('/attributes/:attributeId/values/:valueId', attributeController.deleteValue);
 
+<<<<<<< HEAD
+=======
+// Product Attribute Assignments
+router.get('/products/:id/attributes', attributeController.getProductAttributes);
+router.post('/products/:id/attributes', attributeController.assignToProduct);
+router.delete('/products/:id/attributes/:attributeId', attributeController.removeFromProduct);
+
+>>>>>>> d1d77d0 (dashboard and variants edits)
 // ─── Size Guides ────────────────────────────────────────────
 router.get('/size-guides', sizeGuideController.getSizeGuides);
 router.post('/size-guides', sizeGuideController.createSizeGuide);

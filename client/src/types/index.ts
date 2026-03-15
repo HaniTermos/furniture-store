@@ -33,6 +33,65 @@ export interface ProductDetails {
     care: string;
 }
 
+<<<<<<< HEAD
+=======
+// ===== Variant System Types =====
+export interface VariantAttribute {
+    attribute_id: string;
+    attribute_name: string;
+    attribute_slug: string;
+    option_id: string;
+    option_value: string;
+    option_color?: string;
+    option_image?: string;
+}
+
+export interface ProductVariant {
+    id: string;
+    sku: string;
+    price: number;
+    stock_quantity: number;
+    image_url?: string;
+    is_default: boolean;
+    is_active: boolean;
+    attributes: VariantAttribute[];
+}
+
+export interface AttributeOption {
+    id: string;
+    value: string;
+    slug: string;
+    color_hex?: string;
+    image_url?: string;
+}
+
+export interface ProductAttribute {
+    id: string;
+    name: string;
+    slug: string;
+    type: 'select' | 'color' | 'image';
+    options: AttributeOption[];
+}
+
+// Configuration Option Value (from admin dashboard)
+export interface ConfigOptionValue {
+    id: string;
+    value: string;
+    price_adjustment: number;
+    stock_quantity: number;
+    stock_status: string;
+    image_url?: string;
+}
+
+// Configuration Option (from admin dashboard)
+export interface ConfigOption {
+    id: string;
+    name: string;
+    type: string;
+    values: ConfigOptionValue[];
+}
+
+>>>>>>> d1d77d0 (dashboard and variants edits)
 export interface Product {
     id: string;
     slug: string;
@@ -40,7 +99,13 @@ export interface Product {
     description: string;
     shortDescription: string;
     price: number;
+<<<<<<< HEAD
     originalPrice?: number;
+=======
+    base_price?: number;
+    originalPrice?: number;
+    original_price?: number;
+>>>>>>> d1d77d0 (dashboard and variants edits)
     images: ProductImage[];
     colors: ProductColor[];
     sizes: ProductSize[];
@@ -51,12 +116,27 @@ export interface Product {
     category_id?: string;
     available: number;
     totalStock: number;
+<<<<<<< HEAD
+=======
+    stock_quantity?: number;
+>>>>>>> d1d77d0 (dashboard and variants edits)
     rating: number;
     reviewCount: number;
     tags: string[];
     isNew?: boolean;
     isFeatured?: boolean;
     createdAt: string;
+<<<<<<< HEAD
+=======
+    has_variants?: boolean;
+    price_range?: { min: number; max: number };
+    display_price?: string | number;
+    // Variant system
+    variants?: ProductVariant[];
+    attributes?: ProductAttribute[];
+    // Legacy configuration options from admin dashboard
+    configuration_options?: ConfigOption[];
+>>>>>>> d1d77d0 (dashboard and variants edits)
 }
 
 // ===== Cart Types =====
@@ -66,6 +146,10 @@ export interface CartItem {
     quantity: number;
     selectedColor?: ProductColor;
     selectedSize?: ProductSize;
+<<<<<<< HEAD
+=======
+    variant?: ProductVariant;
+>>>>>>> d1d77d0 (dashboard and variants edits)
 }
 
 // ===== Order Types =====

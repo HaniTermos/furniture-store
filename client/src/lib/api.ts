@@ -4,7 +4,11 @@ import { useAppStore } from '@/store';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // Transform backend product to frontend shape
+<<<<<<< HEAD
 export function transformProduct(p: any): Product {
+=======
+export function transformProduct(p: any): Product & { rawConfigOptions: any[] } {
+>>>>>>> d1d77d0 (dashboard and variants edits)
     // Try to parse configure data if included, otherwise provide sensible defaults
     const images = (p.images || []).map((img: any) => ({
         id: img.id,
@@ -16,6 +20,7 @@ export function transformProduct(p: any): Product {
         images.push({ id: 'primary', url: p.primary_image, alt: p.name });
     }
 
+<<<<<<< HEAD
     const colors = (p.configuration_options?.find((o: any) => o.type === 'color')?.values || []).map((v: any) => {
         // We stored 'Name|#HEX' in seed
         const [name, hex] = (v.value || '').split('|');
@@ -32,6 +37,65 @@ export function transformProduct(p: any): Product {
         label: v.value,
         priceAdjustment: Number(v.price_adjustment || 0)
     }));
+=======
+    // --- DATA MAPPING: COMPATIBILITY LAYER ---
+    // If has_variants is true, we prefer the new Attribute system.
+    // If false (or no attributes found), we fall back to configuration_options (legacy logic).
+    
+    let colors: ProductColor[] = [];
+    let sizes: ProductSize[] = [];
+    let available = Number(p.stock_quantity ?? 0);
+
+    const hasNewSystem = p.has_variants && p.attributes && p.attributes.length > 0;
+
+    if (hasNewSystem) {
+        // Map from new Attributes
+        const colorAttr = p.attributes.find((a: any) => a.type === 'color');
+        if (colorAttr) {
+            colors = (colorAttr.options || []).map((o: any) => ({
+                id: o.id,
+                name: o.value,
+                hex: o.color_hex || '#CCCCCC',
+                image: o.image_url
+            }));
+        }
+
+        const sizeAttr = p.attributes.find((a: any) => a.type === 'select' && (a.slug.includes('size') || a.name.toLowerCase().includes('size')));
+        if (sizeAttr) {
+            sizes = (sizeAttr.options || []).map((o: any) => ({
+                id: o.id,
+                label: o.value,
+                priceAdjustment: 0 // In new system, price is per-variant, not adjustment-based
+            }));
+        }
+
+        // Available stock: if has variants, sum them up
+        if (p.variants && p.variants.length > 0) {
+            available = p.variants.reduce((sum: number, v: any) => sum + Number(v.stock_quantity || 0), 0);
+        }
+    } else {
+        // Fallback to legacy configuration_options
+        const rawColors = (p.configuration_options?.find((o: any) => o.type === 'color')?.values || []);
+        colors = rawColors.map((v: any) => {
+            const [name, hex] = (v.value || '').split('|');
+            return { id: v.id, name: name || v.value, hex: hex || '#CCCCCC', image: v.image_url };
+        });
+
+        const rawSizes = (p.configuration_options?.find((o: any) => o.type === 'size')?.values || []);
+        sizes = rawSizes.map((v: any) => ({
+            id: v.id,
+            label: v.value,
+            priceAdjustment: Number(v.price_adjustment || 0)
+        }));
+
+        if (p.is_configurable) {
+            available = (p.configuration_options || []).reduce((sum: number, opt: any) => {
+                const values = Array.isArray(opt?.values) ? opt.values : [];
+                return sum + values.reduce((s: number, v: any) => s + Number(v?.stock_quantity || 0), 0);
+            }, 0);
+        }
+    }
+>>>>>>> d1d77d0 (dashboard and variants edits)
 
     return {
         id: p.id,
@@ -44,8 +108,14 @@ export function transformProduct(p: any): Product {
         category: p.category_name || '',
         categorySlug: p.category_slug || '',
         category_id: p.category_id || '',
+<<<<<<< HEAD
         available: 10,
         totalStock: 50,
+=======
+        rawConfigOptions: p.configuration_options || [],
+        available,
+        totalStock: available,
+>>>>>>> d1d77d0 (dashboard and variants edits)
         rating: Number(p.avg_rating) || 4.5,
         reviewCount: Number(p.review_count) || 0,
         tags: [],
@@ -61,7 +131,16 @@ export function transformProduct(p: any): Product {
         colors: colors.length ? colors : [{ id: 'default', name: 'Standard', hex: '#CCCCCC' }],
         sizes: sizes.length ? sizes : [{ id: 'default', label: 'Standard', priceAdjustment: 0 }],
         images,
+<<<<<<< HEAD
         createdAt: p.created_at
+=======
+        createdAt: p.created_at,
+        variants: p.variants,
+        has_variants: p.has_variants,
+        price_range: p.price_range,
+        display_price: p.display_price,
+        attributes: p.attributes
+>>>>>>> d1d77d0 (dashboard and variants edits)
     };
 }
 
@@ -187,7 +266,87 @@ class ApiClient {
         return this.fetch<any[]>('/admin/tags');
     }
 
+<<<<<<< HEAD
     // Attributes
+=======
+    // Attributes (New Variant System)
+    async getAttributes(): Promise<any[]> {
+        const res = await this.fetch<any>('/attributes');
+        return res.data || [];
+    }
+
+    async createAttribute(data: { name: string; slug: string; type: string }): Promise<any> {
+        const res = await this.fetch<any>('/attributes', { method: 'POST', body: JSON.stringify(data) });
+        return res.data;
+    }
+
+    async updateAttribute(id: string, data: any): Promise<any> {
+        const res = await this.fetch<any>(`/attributes/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+        return res.data;
+    }
+
+    async deleteAttribute(id: string): Promise<any> {
+        const res = await this.fetch<any>(`/attributes/${id}`, { method: 'DELETE' });
+        return res;
+    }
+
+    async createAttributeOption(attributeId: string, data: { value: string; slug: string; color_hex?: string; image_url?: string }): Promise<any> {
+        const res = await this.fetch<any>(`/attributes/${attributeId}/options`, { method: 'POST', body: JSON.stringify(data) });
+        return res.data;
+    }
+
+    async updateAttributeOption(optionId: string, data: any): Promise<any> {
+        const res = await this.fetch<any>(`/attributes/options/${optionId}`, { method: 'PUT', body: JSON.stringify(data) });
+        return res.data;
+    }
+
+    async deleteAttributeOption(optionId: string): Promise<any> {
+        const res = await this.fetch<any>(`/attributes/options/${optionId}`, { method: 'DELETE' });
+        return res;
+    }
+
+    // Product Variants (New Variant System)
+    async getProductVariants(productId: string): Promise<any[]> {
+        const res = await this.fetch<any>(`/products/${productId}/variants`);
+        return res.data || [];
+    }
+
+    async createProductVariant(productId: string, data: any): Promise<any> {
+        return this.fetch<any>(`/products/${productId}/variants`, { method: 'POST', body: JSON.stringify(data) });
+    }
+
+    async createVariantMatrix(productId: string, matrix: any[]): Promise<any[]> {
+        return this.fetch<any>(`/products/${productId}/variants/matrix`, { method: 'POST', body: JSON.stringify({ matrix }) });
+    }
+
+    async updateProductVariant(productId: string, variantId: string, data: any): Promise<any> {
+        return this.fetch<any>(`/products/${productId}/variants/${variantId}`, { method: 'PUT', body: JSON.stringify(data) });
+    }
+
+    async deleteProductVariant(productId: string, variantId: string): Promise<any> {
+        return this.fetch<any>(`/products/${productId}/variants/${variantId}`, { method: 'DELETE' });
+    }
+
+    async deleteAllProductVariants(productId: string): Promise<any> {
+        return this.fetch<any>(`/products/${productId}/variants`, { method: 'DELETE' });
+    }
+
+    // Product Attribute Assignments
+    async getProductAttributes(productId: string): Promise<any[]> {
+        const res = await this.fetch<any>(`/admin/products/${productId}/attributes`);
+        return res.data || [];
+    }
+
+    async assignAttributeToProduct(productId: string, data: { attribute_id: string; is_required?: boolean; sort_order?: number }): Promise<any> {
+        return this.fetch<any>(`/admin/products/${productId}/attributes`, { method: 'POST', body: JSON.stringify(data) });
+    }
+
+    async removeAttributeFromProduct(productId: string, attributeId: string): Promise<any> {
+        return this.fetch<any>(`/admin/products/${productId}/attributes/${attributeId}`, { method: 'DELETE' });
+    }
+
+    // Legacy Attributes (for backward compatibility)
+>>>>>>> d1d77d0 (dashboard and variants edits)
     async getAdminAttributes(): Promise<any[]> {
         return this.fetch<any[]>('/admin/attributes');
     }
@@ -288,6 +447,14 @@ class ApiClient {
         });
     }
 
+<<<<<<< HEAD
+=======
+    // ─── Product Filters ────────────────────────────────────
+    async getProductFilters(): Promise<{ filters: Array<{ name: string; type: string; values: Array<{ value: string; image_url: string | null }> }> }> {
+        return this.fetch<any>('/products/filters');
+    }
+
+>>>>>>> d1d77d0 (dashboard and variants edits)
     // ─── Admin Analytics ────────────────────────────────────
     async getAdminSalesAnalytics(period?: string): Promise<any> {
         return this.fetch<any>(`/admin/analytics/sales${period ? `?period=${period}` : ''}`);
@@ -405,6 +572,13 @@ class ApiClient {
     }
 
     // ─── Auth Extensions ────────────────────────────────────
+<<<<<<< HEAD
+=======
+    async getProfile(): Promise<{ user: any }> {
+        return this.fetch<any>('/auth/me');
+    }
+
+>>>>>>> d1d77d0 (dashboard and variants edits)
     async logout(): Promise<any> {
         return this.fetch<any>('/auth/logout', { method: 'POST' });
     }

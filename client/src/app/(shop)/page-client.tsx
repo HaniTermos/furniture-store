@@ -288,6 +288,10 @@ export default function HomePage() {
                                             src={cat.image}
                                             alt={cat.name}
                                             fill
+<<<<<<< HEAD
+=======
+                                            sizes="(max-width: 768px) 50vw, 25vw"
+>>>>>>> d1d77d0 (dashboard and variants edits)
                                             className="object-cover transition-transform duration-700 group-hover:scale-110"
                                         />
                                         <div className="absolute bottom-4 left-4 z-20">

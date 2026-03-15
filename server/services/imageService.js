@@ -1,5 +1,9 @@
 const path = require('path');
 const fs = require('fs');
+<<<<<<< HEAD
+=======
+const { v4: uuidv4 } = require('uuid');
+>>>>>>> d1d77d0 (dashboard and variants edits)
 
 // Base URL for constructing absolute image URLs
 const getBaseUrl = () => process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5000}`;
@@ -14,7 +18,12 @@ const imageService = {
             fs.mkdirSync(uploadsDir, { recursive: true });
         }
 
+<<<<<<< HEAD
         const filename = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+=======
+        // Use UUID v4 for filenames — cryptographically random, no collision risk
+        const filename = `${uuidv4()}${path.extname(file.originalname)}`;
+>>>>>>> d1d77d0 (dashboard and variants edits)
         const filepath = path.join(uploadsDir, filename);
 
         // Support both buffer (memory storage) and path (disk storage)

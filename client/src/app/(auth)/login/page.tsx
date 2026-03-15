@@ -59,6 +59,10 @@ export default function LoginPage() {
                         src="/images/placeholder.png"
                         alt="Workspace"
                         fill
+<<<<<<< HEAD
+=======
+                        sizes="50vw"
+>>>>>>> d1d77d0 (dashboard and variants edits)
                         className="object-cover opacity-20"
                         priority
                     />
@@ -67,7 +71,11 @@ export default function LoginPage() {
 
                 <Link href="/" className="relative z-10 flex items-center gap-3 w-fit">
                     <div className="w-12 h-12 relative">
+<<<<<<< HEAD
                         <Image src="/images/logo.png" alt="Logo" fill className="object-contain" />
+=======
+                        <Image src="/images/logo.png" alt="Logo" fill sizes="48px" className="object-contain" />
+>>>>>>> d1d77d0 (dashboard and variants edits)
                     </div>
                     <span className="text-white text-2xl font-bold tracking-tight">HTW Admin</span>
                 </Link>
@@ -110,7 +118,11 @@ export default function LoginPage() {
                 >
                     <div className="lg:hidden flex justify-center mb-8">
                         <Link href="/" className="w-12 h-12 relative">
+<<<<<<< HEAD
                             <Image src="/images/logo.png" alt="Logo" fill className="object-contain" />
+=======
+                            <Image src="/images/logo.png" alt="Logo" fill sizes="48px" className="object-contain" />
+>>>>>>> d1d77d0 (dashboard and variants edits)
                         </Link>
                     </div>
 
