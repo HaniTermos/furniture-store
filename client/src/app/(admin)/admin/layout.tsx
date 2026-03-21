@@ -2,11 +2,8 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-<<<<<<< HEAD
-import { usePathname } from 'next/navigation';
-=======
 import { usePathname, useRouter } from 'next/navigation';
->>>>>>> d1d77d0 (dashboard and variants edits)
+
 import {
     LayoutDashboard,
     Package,
@@ -29,25 +26,15 @@ import {
     Mail,
     Activity,
 } from 'lucide-react';
-<<<<<<< HEAD
-import { useState, useEffect, useCallback } from 'react';
-import { useAppStore } from '@/store';
-import { useRouter } from 'next/navigation';
-=======
 import { useState, useEffect } from 'react';
 import { useAppStore } from '@/store';
->>>>>>> d1d77d0 (dashboard and variants edits)
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { format } from 'date-fns';
 import { Toaster } from 'react-hot-toast';
-<<<<<<< HEAD
-import { useTheme } from 'next-themes';
 import SearchPalette from '@/components/admin/SearchPalette';
-import { Moon, Sun } from 'lucide-react';
-=======
-import SearchPalette from '@/components/admin/SearchPalette';
->>>>>>> d1d77d0 (dashboard and variants edits)
+
 
 const sidebarSections = [
     {
@@ -94,12 +81,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const { user, token, logout: storeLogout } = useAppStore();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [collapsed, setCollapsed] = useState(false);
-<<<<<<< HEAD
-    const [isChecking, setIsChecking] = useState(true);
-=======
     const [mounted, setMounted] = useState(false);
     const [authChecked, setAuthChecked] = useState(false);
->>>>>>> d1d77d0 (dashboard and variants edits)
+
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const queryClient = useQueryClient();
@@ -107,7 +91,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const { data: notificationData } = useQuery({
         queryKey: ['admin-notifications'],
         queryFn: () => api.getNotifications({ limit: 5 }),
-        refetchInterval: 30000, // Poll every 30s
+        refetchInterval: 60000, // Poll every 60s
     });
 
     const markReadMutation = useMutation({
@@ -123,22 +107,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const notifications = notificationData?.notifications || [];
     const unreadCount = notificationData?.unreadCount || 0;
 
-<<<<<<< HEAD
-    const { theme, setTheme } = useTheme();
-
-    useEffect(() => {
-        setIsChecking(false);
-    }, []);
-
-    useEffect(() => {
-        if (isChecking) return;
-        if (!token || !user) {
-            router.push('/login');
-        } else if (!['admin', 'manager', 'super_admin'].includes(user.role as string)) {
-            router.push('/');
-        }
-    }, [user, token, router, isChecking]);
-=======
     // Step 1: wait for client mount (prevents SSR mismatch)
     useEffect(() => {
         setMounted(true);
@@ -168,7 +136,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 router.replace('/login');
             });
     }, [mounted]); // eslint-disable-line react-hooks/exhaustive-deps
->>>>>>> d1d77d0 (dashboard and variants edits)
+
 
     const handleLogout = () => {
         storeLogout();
@@ -185,12 +153,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             isLast: index === arr.length - 1,
         }));
 
-<<<<<<< HEAD
-    if (isChecking || !token || !user || !['admin', 'manager', 'super_admin'].includes(user.role as string)) {
-=======
     // Show spinner until mount + server auth check complete
     if (!mounted || !authChecked || !user) {
->>>>>>> d1d77d0 (dashboard and variants edits)
+
         return (
             <div className="min-h-screen bg-[var(--admin-bg)] flex items-center justify-center">
                 <div className="w-8 h-8 rounded-full border-2 border-primary-orange border-t-transparent animate-spin" />

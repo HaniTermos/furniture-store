@@ -43,10 +43,8 @@ export default function AboutPage() {
                     src="/images/placeholder.png"
                     alt="Woodworking workshop"
                     fill
-<<<<<<< HEAD
-=======
                     sizes="100vw"
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                     className="object-cover brightness-50"
                     priority
                 />
@@ -91,10 +89,8 @@ export default function AboutPage() {
                             src="/images/placeholder.png"
                             alt="Craftsmanship"
                             fill
-<<<<<<< HEAD
-=======
                             sizes="(max-width: 1024px) 100vw, 50vw"
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                             className="object-cover"
                         />
                     </div>
@@ -143,10 +139,8 @@ export default function AboutPage() {
                                     src={member.image}
                                     alt={member.name}
                                     fill
-<<<<<<< HEAD
-=======
                                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                                 />
                             </div>

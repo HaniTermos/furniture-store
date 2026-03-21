@@ -40,7 +40,7 @@ const SavedDesign = {
             `SELECT sd.*, p.name AS product_name, p.slug AS product_slug
        FROM saved_designs sd
        JOIN products p ON p.id = sd.product_id
-       WHERE sd.share_token = $1 AND sd.is_public = true`,
+        WHERE sd.share_token = $1 AND sd.is_public = true AND p.is_deleted = false`,
             [token]
         );
         return rows[0] || null;

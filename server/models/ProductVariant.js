@@ -1,7 +1,7 @@
 const pool = require('../db/pool');
 
 const ProductVariant = {
-    async create({ product_id, sku, price, stock_quantity = 0, image_url, is_default = false, is_active = true, position = 0, attributes = [] }) {
+    async create({ product_id, sku, price, stock_quantity = 0, image_url, image_alt, is_default = false, is_active = true, position = 0, attributes = [] }) {
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
@@ -9,19 +9,34 @@ const ProductVariant = {
             // Create variant
             const { rows: [variant] } = await client.query(
                 `INSERT INTO product_variants 
-                 (product_id, sku, price, stock_quantity, image_url, is_default, is_active, position)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-                [product_id, sku, price, stock_quantity, image_url, is_default, is_active, position]
+                 (product_id, sku, price, stock_quantity, image_url, image_alt, is_default, is_active, position)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+                [product_id, sku, price, stock_quantity, image_url, image_alt, is_default, is_active, position]
             );
             
             // Link attributes
             for (const { attribute_id, option_id } of attributes) {
+                // Link option to variant
                 await client.query(
                     `INSERT INTO variant_attributes (variant_id, attribute_id, option_id)
                      VALUES ($1, $2, $3)`,
                     [variant.id, attribute_id, option_id]
                 );
+                
+                // Ensure attribute is linked to the product itself
+                await client.query(
+                    `INSERT INTO product_attributes (product_id, attribute_id, is_required)
+                     VALUES ($1, $2, true)
+                     ON CONFLICT (product_id, attribute_id) DO NOTHING`,
+                    [product_id, attribute_id]
+                );
             }
+
+            // Sync has_variants flag on product
+            await client.query(
+                `UPDATE products SET has_variants = true WHERE id = $1`,
+                [product_id]
+            );
             
             await client.query('COMMIT');
             return this.findById(variant.id);
@@ -42,6 +57,7 @@ const ProductVariant = {
                 price: row.price,
                 stock_quantity: row.stock,
                 image_url: row.image_url,
+                image_alt: row.image_alt,
                 is_default: row.is_default || false,
                 is_active: row.is_active !== false,
                 position: row.position || 0,
@@ -128,7 +144,7 @@ const ProductVariant = {
     },
 
     async update(id, fields) {
-        const allowed = ['sku', 'price', 'stock_quantity', 'image_url', 'is_active', 'is_default', 'position', 'low_stock_threshold'];
+        const allowed = ['sku', 'price', 'stock_quantity', 'image_url', 'image_alt', 'is_active', 'is_default', 'position', 'low_stock_threshold'];
         const keys = Object.keys(fields).filter(k => allowed.includes(k));
         if (!keys.length) return null;
         
@@ -164,20 +180,73 @@ const ProductVariant = {
     },
 
     async delete(id) {
-        const { rowCount } = await pool.query(
-            `DELETE FROM product_variants WHERE id = $1`,
-            [id]
-        );
-        return rowCount > 0;
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            
+            // Get product_id before deletion
+            const { rows: [variant] } = await client.query(
+                `SELECT product_id FROM product_variants WHERE id = $1`,
+                [id]
+            );
+
+            if (!variant) {
+                await client.query('ROLLBACK');
+                return false;
+            }
+
+            const { rowCount } = await client.query(
+                `DELETE FROM product_variants WHERE id = $1`,
+                [id]
+            );
+
+            // Check if any variants remain
+            const { rows: [remaining] } = await client.query(
+                `SELECT COUNT(*) FROM product_variants WHERE product_id = $1`,
+                [variant.product_id]
+            );
+
+            if (parseInt(remaining.count) === 0) {
+                await client.query(
+                    `UPDATE products SET has_variants = false WHERE id = $1`,
+                    [variant.product_id]
+                );
+            }
+
+            await client.query('COMMIT');
+            return rowCount > 0;
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
+        }
     },
 
     // Bulk operations
     async deleteByProduct(product_id) {
-        const { rowCount } = await pool.query(
-            `DELETE FROM product_variants WHERE product_id = $1`,
-            [product_id]
-        );
-        return rowCount;
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            
+            const { rowCount } = await client.query(
+                `DELETE FROM product_variants WHERE product_id = $1`,
+                [product_id]
+            );
+
+            await client.query(
+                `UPDATE products SET has_variants = false WHERE id = $1`,
+                [product_id]
+            );
+
+            await client.query('COMMIT');
+            return rowCount;
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
+        }
     },
 
     // SKU Generator helper

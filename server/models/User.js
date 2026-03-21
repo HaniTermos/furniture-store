@@ -35,11 +35,7 @@ const User = {
         const { rows } = await pool.query(
             `SELECT id, email, name, phone, role, avatar_url, is_active, email_verified,
               google_id, failed_login_attempts, locked_until, two_factor_enabled,
-<<<<<<< HEAD
-              preferences, created_at, updated_at
-=======
               preferences, password_changed_at, created_at, updated_at
->>>>>>> d1d77d0 (dashboard and variants edits)
        FROM users WHERE id = $1`,
             [id]
         );
@@ -81,10 +77,7 @@ const User = {
             'password_reset_token', 'password_reset_expires',
             'last_login_ip', 'failed_login_attempts', 'locked_until',
             'two_factor_secret', 'two_factor_enabled', 'preferences',
-<<<<<<< HEAD
-=======
             'password_changed_at',
->>>>>>> d1d77d0 (dashboard and variants edits)
         ];
         const keys = Object.keys(fields).filter(k => ALLOWED_FIELDS.includes(k));
         if (keys.length === 0) return null;
@@ -130,13 +123,8 @@ const User = {
 
     async lockAccount(id, minutes) {
         await pool.query(
-<<<<<<< HEAD
-            `UPDATE users SET locked_until = CURRENT_TIMESTAMP + INTERVAL '${minutes} minutes' WHERE id = $1`,
-            [id]
-=======
             `UPDATE users SET locked_until = CURRENT_TIMESTAMP + ($2 || ' minutes')::INTERVAL WHERE id = $1`,
             [id, String(parseInt(minutes, 10))]
->>>>>>> d1d77d0 (dashboard and variants edits)
         );
     },
 
@@ -160,15 +148,9 @@ const User = {
     async setResetToken(id, token, expiresMinutes = 60) {
         await pool.query(
             `UPDATE users SET password_reset_token = $2,
-<<<<<<< HEAD
-       password_reset_expires = CURRENT_TIMESTAMP + INTERVAL '${expiresMinutes} minutes',
-       updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
-            [id, token]
-=======
        password_reset_expires = CURRENT_TIMESTAMP + ($3 || ' minutes')::INTERVAL,
        updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
             [id, token, String(parseInt(expiresMinutes, 10))]
->>>>>>> d1d77d0 (dashboard and variants edits)
         );
     },
 

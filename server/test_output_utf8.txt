@@ -1,0 +1,121 @@
+﻿  console.log
+    [dotenv@17.3.1] injecting env (0) from .env.test -- tip: ≡ƒ¢í∩╕Å auth for agents: https://vestauth.com
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (18) from .env -- tip: ≡ƒöÉ prevent committing .env to code: https://dotenvx.com/precommit
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    Test database schema globally initialized.
+
+      at Object.log (tests/setup.js:33:17)
+
+  console.log
+    [2026-03-19T13:04:55.671Z] [INFO] [EMAIL STUB] To: Alexandra.Langosh@hotmail.com | Subject: Welcome to HTW Furniture ΓÇö Please Verify Your Email
+
+      at Object.log [as info] (utils/logger.js:3:17)
+
+[2026-03-19T13:04:55.699Z] POST /api/auth/register 201 589.786 ms | RequestID: 885b810b-ad25-4bf8-b40d-87549ca61b2d
+[2026-03-19T13:04:56.455Z] POST /api/auth/login 200 537.911 ms | RequestID: 32676706-dac0-450d-aef9-7fac4984292d
+[2026-03-19T13:04:56.557Z] POST /api/admin/products 201 39.700 ms | RequestID: 311a8037-9cdf-4f76-a683-6e8ba7814247
+[2026-03-19T13:04:56.621Z] POST /api/products/e08a093b-b0e8-4910-9a57-ff94bbf67839/variants/matrix 201 46.075 ms | RequestID: e9b44288-5d1c-4ac3-8409-b4b3085b7d0c
+[2026-03-19T13:04:56.667Z] POST /api/admin/products 201 21.604 ms | RequestID: e797313e-c3f5-4778-a977-124fcc11efc4
+[2026-03-19T13:04:56.716Z] POST /api/products/0f32c590-d55b-47ec-b433-0b93814363fa/variants/matrix 201 37.386 ms | RequestID: 34980e38-080b-45a1-a033-30542b8839b5
+[2026-03-19T13:04:56.915Z] GET /api/products/refined-aluminum-gloves 200 179.753 ms | RequestID: d279cf78-1053-4feb-b6bb-353f50382dc6
+[2026-03-19T13:04:56.973Z] GET /api/products 200 37.710 ms | RequestID: ac863be0-6dee-42d8-b92c-20ded8f6933e
+node.exe : FAIL 
+tests/variants.test.js 
+(17.617 s)
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Users\Hani\AppData\
+Roaming\n ...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (FAIL tests/va   
+ riants.test.js (17    
+.617 s):String) []    
+, RemoteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+  Product Variants & 
+Attributes API
+    Variant Life Cycle
+      ├ù should create 
+a product with 
+variants and 
+attributes (136 ms)
+      ΓêÜ should show 
+options even if 
+variant is out of 
+stock (344 ms)
+
+  ΓùÅ Product Variants 
+& Attributes API ΓÇ║ 
+Variant Life Cycle ΓÇ║ 
+should create a 
+product with variants 
+and attributes
+
+    expect(received).to
+Be(expected) // 
+Object.is equality
+
+    Expected: 1
+    Received: undefined
+
+    [0m [90m 100 
+|[39m
+     [90m 101 |[39m  
+           expect(matri
+xRes[33m.[39mstatusCo
+de)[33m.[39mtoEqual(
+[35m201[39m)[33m;[39
+m
+    [31m[1m>[22m[39
+m[90m 102 |[39m      
+       expect(matrixRes
+[33m.[39mbody[33m.[
+39mlength)[33m.[39mto
+Be([35m1[39m)[33m;[
+39m
+     [90m     |[39m  
+                       
+                  
+[31m[1m^[22m[39m
+     [90m 103 |[39m
+     [90m 104 |[39m  
+           [90m// 3. 
+Update Product (Using 
+admin endpoint)[39m
+     [90m 105 |[39m  
+           
+[36mconst[39m 
+updateRes [33m=[39m 
+[36mawait[39m 
+request(app)[0m
+
+      at Object.toBe (t
+ests/variants.test.js:1
+02:43)
+
+Test Suites: 1 failed, 
+1 total
+Tests:       1 failed, 
+1 passed, 2 total
+Snapshots:   0 total
+Time:        17.854 s
+Ran all test suites 
+matching 
+tests/variants.test.js.
+

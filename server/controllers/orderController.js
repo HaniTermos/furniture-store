@@ -3,9 +3,11 @@ const Order = require('../models/Order');
 const OrderItem = require('../models/OrderItem');
 const CartItem = require('../models/CartItem');
 const Product = require('../models/Product');
+const Coupon = require('../models/Coupon');
 const generateOrderNumber = require('../utils/generateOrderNumber');
 const priceService = require('../services/priceService');
 const emailService = require('../services/emailService');
+const Notification = require('../models/Notification');
 
 const orderController = {
     /**
@@ -16,7 +18,7 @@ const orderController = {
         try {
             await client.query('BEGIN');
 
-            const { shipping_address, billing_address, payment_method, notes } = req.body;
+            const { shipping_address, billing_address, payment_method, notes, coupon_code } = req.body;
 
             // Get cart items
             const cartItems = await CartItem.findByUser(req.user.id);
@@ -32,10 +34,7 @@ const orderController = {
                 const total = parseFloat(item.unit_price) * item.quantity;
                 subtotal += total;
                 const product = await Product.findById(item.product_id);
-<<<<<<< HEAD
-                orderItems.push({
-                    product_id: item.product_id,
-=======
+                
                 let productSku = product ? product.sku : 'N/A';
                 if (item.variant_id) {
                     const ProductVariant = require('../models/ProductVariant');
@@ -45,20 +44,28 @@ const orderController = {
                 orderItems.push({
                     product_id: item.product_id,
                     variant_id: item.variant_id,
->>>>>>> d1d77d0 (dashboard and variants edits)
                     quantity: item.quantity,
                     unit_price: parseFloat(item.unit_price),
                     configuration: item.configuration,
                     product_name: product ? product.name : item.product_name,
-<<<<<<< HEAD
-                    product_sku: product ? product.sku : 'N/A',
-=======
                     product_sku: productSku,
->>>>>>> d1d77d0 (dashboard and variants edits)
                 });
             }
 
-            const totals = priceService.calculateOrderTotals(subtotal);
+            // Validate coupon if provided
+            let discountAmount = 0;
+            let appliedCoupon = null;
+            if (coupon_code) {
+                const couponRes = await Coupon.validate(coupon_code, req.user.id, subtotal);
+                if (!couponRes.valid) {
+                    await client.query('ROLLBACK');
+                    return res.status(400).json({ error: couponRes.error });
+                }
+                discountAmount = couponRes.discount;
+                appliedCoupon = couponRes.coupon;
+            }
+
+            const totals = priceService.calculateOrderTotals(subtotal, { discountAmount });
 
             // Create order
             const order = await Order.create({
@@ -74,8 +81,6 @@ const orderController = {
             // Create order items
             await OrderItem.createMany(order.id, orderItems, client);
 
-<<<<<<< HEAD
-=======
             // Decrement stock for each item
             for (const item of cartItems) {
                 if (item.variant_id) {
@@ -120,9 +125,33 @@ const orderController = {
                 }
             }
 
->>>>>>> d1d77d0 (dashboard and variants edits)
             // Clear cart
             await client.query(`DELETE FROM cart_items WHERE user_id = $1`, [req.user.id]);
+
+            // Record coupon usage
+            if (appliedCoupon) {
+                await Coupon.recordUsage(appliedCoupon.id, req.user.id, order.id);
+                await Coupon.incrementUsage(appliedCoupon.id);
+            }
+
+            // Create notifications for all staff members
+            try {
+                const { rows: staffMembers } = await client.query(
+                    "SELECT id FROM users WHERE role IN ('admin', 'super_admin', 'manager')"
+                );
+                for (const member of staffMembers) {
+                    await Notification.create({
+                        userId: member.id,
+                        type: 'new_order',
+                        title: 'New Order Placed',
+                        message: `Order #${order.order_number} has been placed.`,
+                        link: `/admin/orders/${order.id}`
+                    }, client);
+                }
+            } catch (notifyError) {
+                console.error('Failed to create order notifications:', notifyError);
+                // Don't fail the order if notifications fail
+            }
 
             await client.query('COMMIT');
 
@@ -170,8 +199,9 @@ const orderController = {
                 return res.status(404).json({ error: 'Order not found.' });
             }
 
-            // Check ownership (admin can view any)
-            if (order.user_id !== req.user.id && req.user.role !== 'admin') {
+            // Check ownership (admin, super_admin, and manager can view any)
+            const isStaff = ['admin', 'super_admin', 'manager'].includes(req.user.role);
+            if (order.user_id !== req.user.id && !isStaff) {
                 return res.status(403).json({ error: 'Access denied.' });
             }
 
@@ -200,6 +230,35 @@ const orderController = {
 
             const updated = await Order.updateStatus(order.id, 'cancelled');
             res.json({ message: 'Order cancelled.', order: updated });
+        } catch (error) {
+            next(error);
+        }
+    },
+
+    /**
+     * POST /api/orders/validate-coupon
+     */
+    async validateCoupon(req, res, next) {
+        try {
+            const { code, subtotal } = req.body;
+            if (!code || !subtotal) {
+                return res.status(400).json({ error: 'Coupon code and subtotal are required.' });
+            }
+
+            const result = await Coupon.validate(code, req.user.id, parseFloat(subtotal));
+            if (!result.valid) {
+                return res.status(400).json({ error: result.error });
+            }
+
+            res.json({
+                message: 'Coupon is valid.',
+                discount: result.discount,
+                coupon: {
+                    code: result.coupon.code,
+                    type: result.coupon.type,
+                    value: result.coupon.value,
+                }
+            });
         } catch (error) {
             next(error);
         }

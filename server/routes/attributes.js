@@ -6,7 +6,7 @@ const Attribute = require('../models/Attribute');
 // GET /api/attributes - List all attributes with options (public)
 router.get('/', async (req, res, next) => {
     try {
-        const attrs = await Attribute.findAll({ includeOptions: true });
+        const attrs = await Attribute.findAllAttributes({ includeOptions: true });
         res.json({ success: true, data: attrs });
     } catch (err) {
         next(err);
@@ -16,7 +16,7 @@ router.get('/', async (req, res, next) => {
 // GET /api/attributes/:id - Get single attribute (public)
 router.get('/:id', async (req, res, next) => {
     try {
-        const attr = await Attribute.findById(req.params.id);
+        const attr = await Attribute.findAttributeById(req.params.id);
         if (!attr) {
             return res.status(404).json({ success: false, message: 'Attribute not found' });
         }
@@ -35,7 +35,7 @@ router.post('/', auth, adminOnly, async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Name and slug are required' });
         }
         
-        const attr = await Attribute.create({ name, slug, type, sort_order });
+        const attr = await Attribute.createAttribute({ name, slug, type, sort_order });
         res.status(201).json({ success: true, data: attr });
     } catch (err) {
         if (err.message.includes('unique constraint')) {
@@ -48,7 +48,7 @@ router.post('/', auth, adminOnly, async (req, res, next) => {
 // PUT /api/attributes/:id - Update attribute (admin only)
 router.put('/:id', auth, adminOnly, async (req, res, next) => {
     try {
-        const attr = await Attribute.update(req.params.id, req.body);
+        const attr = await Attribute.updateAttribute(req.params.id, req.body);
         if (!attr) {
             return res.status(404).json({ success: false, message: 'Attribute not found' });
         }
@@ -61,7 +61,7 @@ router.put('/:id', auth, adminOnly, async (req, res, next) => {
 // DELETE /api/attributes/:id - Delete attribute (admin only)
 router.delete('/:id', auth, adminOnly, async (req, res, next) => {
     try {
-        const deleted = await Attribute.delete(req.params.id);
+        const deleted = await Attribute.deleteAttribute(req.params.id);
         if (!deleted) {
             return res.status(404).json({ success: false, message: 'Attribute not found' });
         }

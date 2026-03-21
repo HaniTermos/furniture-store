@@ -1,10 +1,7 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-<<<<<<< HEAD
-=======
 const { v4: uuidv4 } = require('uuid');
->>>>>>> d1d77d0 (dashboard and variants edits)
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, '..', 'uploads');
@@ -12,9 +9,6 @@ if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-<<<<<<< HEAD
-// Disk storage — saves files directly to /uploads
-=======
 // ─── Magic byte signatures for allowed image types ──────────
 // Checked AFTER upload to prevent spoofed Content-Type bypass
 const IMAGE_MAGIC_BYTES = [
@@ -45,19 +39,11 @@ const validateMagicBytes = (filePath) => {
 };
 
 // ─── Disk storage — UUID filenames (no Math.random()) ───────
->>>>>>> d1d77d0 (dashboard and variants edits)
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, uploadsDir);
     },
     filename: (req, file, cb) => {
-<<<<<<< HEAD
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
-    },
-});
-
-=======
         // Use UUID v4 — cryptographically random, no collision risk
         const ext = path.extname(file.originalname).toLowerCase();
         cb(null, uuidv4() + ext);
@@ -65,7 +51,6 @@ const storage = multer.diskStorage({
 });
 
 // ─── First-pass filter: check client-supplied MIME type ─────
->>>>>>> d1d77d0 (dashboard and variants edits)
 const fileFilter = (req, file, cb) => {
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
     if (allowedTypes.includes(file.mimetype)) {
@@ -84,7 +69,4 @@ const upload = multer({
 });
 
 module.exports = upload;
-<<<<<<< HEAD
-=======
 module.exports.validateMagicBytes = validateMagicBytes;
->>>>>>> d1d77d0 (dashboard and variants edits)

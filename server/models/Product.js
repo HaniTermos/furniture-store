@@ -3,33 +3,20 @@ const pool = require('../db/pool');
 const Product = {
     async create(data) {
         const {
-<<<<<<< HEAD
             name, slug, sku, description, short_description, base_price,
-            category_id, is_active = true, is_configurable = false,
-=======
             category_id, is_active = true, is_configurable = false, has_variants = false,
->>>>>>> d1d77d0 (dashboard and variants edits)
             is_featured = false, is_new = false, weight_kg, dimensions_cm,
             meta_title, meta_description,
         } = data;
         const { rows } = await pool.query(
             `INSERT INTO products
         (name, slug, sku, description, short_description, base_price,
-<<<<<<< HEAD
-         category_id, is_active, is_configurable, is_featured, is_new,
-         weight_kg, dimensions_cm, meta_title, meta_description)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
-       RETURNING *`,
-            [name, slug, sku, description, short_description, base_price,
-                category_id, is_active, is_configurable, is_featured, is_new,
-=======
          category_id, is_active, is_configurable, has_variants, is_featured, is_new,
          weight_kg, dimensions_cm, meta_title, meta_description)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
        RETURNING *`,
             [name, slug, sku, description, short_description, base_price,
                 category_id, is_active, is_configurable, has_variants, is_featured, is_new,
->>>>>>> d1d77d0 (dashboard and variants edits)
                 weight_kg, dimensions_cm ? JSON.stringify(dimensions_cm) : null,
                 meta_title, meta_description]
         );
@@ -38,20 +25,13 @@ const Product = {
 
     async findById(id) {
         const { rows } = await pool.query(
-<<<<<<< HEAD
-            `SELECT p.*, c.name AS category_name, c.slug AS category_slug
-=======
             `SELECT p.*, c.name AS category_name, c.slug AS category_slug,
              (SELECT get_product_price_range(p.id)) as price_range
->>>>>>> d1d77d0 (dashboard and variants edits)
        FROM products p
        LEFT JOIN categories c ON c.id = p.category_id
-       WHERE p.id = $1`,
+       WHERE p.id = $1 AND p.is_deleted = false`,
             [id]
         );
-<<<<<<< HEAD
-        return rows[0] || null;
-=======
         const product = rows[0] || null;
         if (product && product.has_variants) {
             const ProductVariant = require('./ProductVariant');
@@ -69,25 +49,17 @@ const Product = {
             product.display_price = product.base_price;
         }
         return product;
->>>>>>> d1d77d0 (dashboard and variants edits)
     },
 
     async findBySlug(slug) {
         const { rows } = await pool.query(
-<<<<<<< HEAD
-            `SELECT p.*, c.name AS category_name, c.slug AS category_slug
-=======
             `SELECT p.*, c.name AS category_name, c.slug AS category_slug,
              (SELECT get_product_price_range(p.id)) as price_range
->>>>>>> d1d77d0 (dashboard and variants edits)
        FROM products p
        LEFT JOIN categories c ON c.id = p.category_id
-       WHERE p.slug = $1`,
+       WHERE p.slug = $1 AND p.is_deleted = false`,
             [slug]
         );
-<<<<<<< HEAD
-        return rows[0] || null;
-=======
         const product = rows[0] || null;
         if (product && product.has_variants) {
             const ProductVariant = require('./ProductVariant');
@@ -105,11 +77,10 @@ const Product = {
             product.display_price = product.base_price;
         }
         return product;
->>>>>>> d1d77d0 (dashboard and variants edits)
     },
 
     async findAll({ page = 1, limit = 12, category_id, search, sort = 'created_at', order = 'DESC', activeOnly = true, minPrice, maxPrice, isFeatured } = {}) {
-        const conditions = [];
+        const conditions = ['p.is_deleted = false'];
         const params = [];
         let paramIdx = 1;
 
@@ -154,10 +125,7 @@ const Product = {
         const dataQuery = `
       SELECT p.*, c.name AS category_name,
         (SELECT url FROM product_images WHERE product_id = p.id AND is_primary = true LIMIT 1) AS primary_image,
-<<<<<<< HEAD
-=======
         (SELECT get_product_price_range(p.id)) as price_range,
->>>>>>> d1d77d0 (dashboard and variants edits)
         (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE product_id = p.id AND is_approved = true) AS avg_rating,
         (SELECT COUNT(*) FROM reviews WHERE product_id = p.id AND is_approved = true) AS review_count
       FROM products p
@@ -186,11 +154,7 @@ const Product = {
         // Whitelist allowed fields to prevent SQL injection via keys
         const ALLOWED_FIELDS = [
             'name', 'slug', 'sku', 'description', 'short_description', 'base_price',
-<<<<<<< HEAD
-            'category_id', 'is_active', 'is_configurable', 'is_featured', 'is_new',
-=======
             'category_id', 'is_active', 'is_configurable', 'has_variants', 'is_featured', 'is_new',
->>>>>>> d1d77d0 (dashboard and variants edits)
             'weight_kg', 'dimensions_cm', 'meta_title', 'meta_description'
         ];
 
@@ -213,7 +177,7 @@ const Product = {
     },
 
     async delete(id) {
-        const { rowCount } = await pool.query(`DELETE FROM products WHERE id = $1`, [id]);
+        const { rowCount } = await pool.query(`UPDATE products SET is_active = false, is_deleted = true, updated_at = CURRENT_TIMESTAMP WHERE id = $1`, [id]);
         return rowCount > 0;
     },
 
@@ -223,7 +187,7 @@ const Product = {
         (SELECT url FROM product_images WHERE product_id = p.id AND is_primary = true LIMIT 1) AS primary_image,
         (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE product_id = p.id AND is_approved = true) AS avg_rating
        FROM products p
-       WHERE p.is_featured = true AND p.is_active = true
+       WHERE p.is_featured = true AND p.is_active = true AND p.is_deleted = false
        ORDER BY p.updated_at DESC
        LIMIT $1`,
             [limit]
@@ -236,7 +200,7 @@ const Product = {
             `SELECT p.*,
         (SELECT url FROM product_images WHERE product_id = p.id AND is_primary = true LIMIT 1) AS primary_image
        FROM products p
-       WHERE p.category_id = $1 AND p.id != $2 AND p.is_active = true
+       WHERE p.category_id = $1 AND p.id != $2 AND p.is_active = true AND p.is_deleted = false
        ORDER BY RANDOM()
        LIMIT $3`,
             [categoryId, productId, limit]

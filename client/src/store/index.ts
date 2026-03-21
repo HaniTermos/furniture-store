@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CurrencyConfig, User } from '@/types';
+import { api } from '@/lib/api';
 
 interface AppStore {
     // Currency
@@ -8,6 +9,7 @@ interface AppStore {
     showLbp: boolean;
     setCurrencyConfig: (config: Partial<CurrencyConfig>) => void;
     toggleCurrency: () => void;
+    initializeConfig: () => Promise<void>;
 
     // Auth
     user: User | null;
@@ -29,27 +31,46 @@ export const useAppStore = create<AppStore>()(
             currencyConfig: {
                 usdToLbpRate: 89500,
                 taxRate: 0.11,
-                shippingRates: [
-                    {
-                        id: '1',
-                        region: 'Lebanon',
-                        minOrderValue: 0,
-                        rate: 5,
-                        freeShippingThreshold: 100,
-                    },
-                    {
-                        id: '2',
-                        region: 'International',
-                        minOrderValue: 0,
-                        rate: 25,
-                        freeShippingThreshold: 500,
-                    },
-                ],
+                shippingRates: [],
+                activeCurrencies: [],
+                baseCurrencyCode: 'USD',
             },
             showLbp: false,
             setCurrencyConfig: (config) =>
                 set({ currencyConfig: { ...get().currencyConfig, ...config } }),
             toggleCurrency: () => set({ showLbp: !get().showLbp }),
+
+            initializeConfig: async () => {
+                try {
+                    const [currencies, settings] = await Promise.all([
+                        api.getActiveCurrencies(),
+                        api.getPublicSettings()
+                    ]);
+
+                    const lbpCurrency = currencies.find(c => c.code === 'LBP');
+                    const baseCurrency = currencies.find(c => c.is_base) || currencies[0];
+
+                    set({
+                        currencyConfig: {
+                            usdToLbpRate: lbpCurrency ? Number(lbpCurrency.exchange_rate) : 90000,
+                            taxRate: settings.tax_rate ? Number(settings.tax_rate) : 0.11,
+                            shippingRates: settings.shipping ? [
+                                {
+                                    id: 'default',
+                                    region: 'Lebanon',
+                                    minOrderValue: 0,
+                                    rate: Number(settings.shipping.default_rate || 5),
+                                    freeShippingThreshold: Number(settings.shipping.free_threshold || 100)
+                                }
+                            ] : [],
+                            activeCurrencies: currencies,
+                            baseCurrencyCode: baseCurrency ? baseCurrency.code : 'USD',
+                        }
+                    });
+                } catch (error) {
+                    console.error('Failed to initialize app config:', error);
+                }
+            },
 
             // Auth
             user: null,

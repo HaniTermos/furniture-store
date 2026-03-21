@@ -10,6 +10,7 @@ router.get('/', auth, cartController.getCart);
 router.post('/', auth, validate(cartItemSchema), cartController.addItem);
 router.put('/:id', auth, validate(cartUpdateSchema), cartController.updateItem);
 router.delete('/:id', auth, cartController.removeItem);
+router.post('/sync', auth, cartController.syncCart);
 router.delete('/', auth, cartController.clearCart);
 
 module.exports = router;

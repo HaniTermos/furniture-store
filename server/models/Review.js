@@ -99,7 +99,7 @@ const Review = {
         let query = `SELECT r.*, u.name AS user_name, p.name AS product_name
                  FROM reviews r
                  JOIN users u ON u.id = r.user_id
-                 JOIN products p ON p.id = r.product_id`;
+                 JOIN products p ON p.id = r.product_id AND p.is_deleted = false`;
         const params = [];
         if (isApproved !== undefined) {
             query += ` WHERE r.is_approved = $1`;

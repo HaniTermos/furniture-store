@@ -28,14 +28,11 @@ const authController = {
         try {
             const { email, password, name, phone } = req.body;
 
-<<<<<<< HEAD
             const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
             if (!passwordRegex.test(password)) {
                 return res.status(400).json({ error: 'Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.' });
             }
 
-=======
->>>>>>> d1d77d0 (dashboard and variants edits)
             const existing = await User.findByEmail(email);
             if (existing) {
                 return res.status(409).json({ error: 'Email already registered.' });
@@ -258,14 +255,9 @@ const authController = {
                 return res.status(400).json({ error: 'Token and new password are required.' });
             }
 
-<<<<<<< HEAD
             const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
             if (!passwordRegex.test(password)) {
                 return res.status(400).json({ error: 'Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.' });
-=======
-            if (password.length < 8) {
-                return res.status(400).json({ error: 'Password must be at least 8 characters.' });
->>>>>>> d1d77d0 (dashboard and variants edits)
             }
 
             const user = await User.findByResetToken(token);
@@ -312,11 +304,6 @@ const authController = {
                     userAgent: req.headers['user-agent'],
                 }).catch(() => { });
 
-<<<<<<< HEAD
-                // Generate JWT and redirect to frontend with token
-                const token = generateToken(user);
-                res.redirect(`${process.env.CLIENT_URL}/auth/callback?token=${token}`);
-=======
                 // Generate JWT and set as HttpOnly cookie instead of URL param
                 // (prevents token leakage via browser history, logs, referrer headers)
                 const token = generateToken(user);
@@ -327,7 +314,6 @@ const authController = {
                     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
                 });
                 res.redirect(`${process.env.CLIENT_URL}/auth/callback`);
->>>>>>> d1d77d0 (dashboard and variants edits)
             });
         })(req, res, next);
     },
@@ -380,8 +366,6 @@ const authController = {
 
             await User.updatePassword(req.user.id, newPassword);
 
-<<<<<<< HEAD
-=======
             // Stamp password_changed_at so existing JWTs issued before this
             // moment can be rejected in auth middleware (token invalidation).
             // Add 1 second to ensure tokens issued in the same second are also invalidated
@@ -389,7 +373,6 @@ const authController = {
             const changedAt = new Date(Date.now() + 1000);
             await User.update(req.user.id, { password_changed_at: changedAt });
 
->>>>>>> d1d77d0 (dashboard and variants edits)
             ActivityLog.create({
                 userId: req.user.id,
                 action: 'password_change',
@@ -399,14 +382,10 @@ const authController = {
                 userAgent: req.headers['user-agent'],
             }).catch(() => { });
 
-<<<<<<< HEAD
-            res.json({ message: 'Password changed successfully.' });
-=======
             // Clear auth cookie if present
             res.clearCookie('auth_token');
 
             res.json({ message: 'Password changed successfully. Please log in again.' });
->>>>>>> d1d77d0 (dashboard and variants edits)
         } catch (error) {
             next(error);
         }

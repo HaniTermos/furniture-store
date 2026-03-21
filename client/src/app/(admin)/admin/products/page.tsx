@@ -81,7 +81,25 @@ export default function AdminProductsPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     <button
-                        onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/admin/export/products`, '_blank')}
+                        onClick={async () => {
+                            try {
+                                const token = (await import('@/store')).useAppStore.getState().token;
+                                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/admin/export/products`, {
+                                    headers: { Authorization: `Bearer ${token}` }
+                                });
+                                if (!res.ok) throw new Error('Export failed');
+                                const blob = await res.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = 'products_export.csv';
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                toast.success('Export downloaded');
+                            } catch (err: any) {
+                                toast.error(err?.message || 'Export failed');
+                            }
+                        }}
                         className="flex items-center gap-2 px-4 py-2.5 border border-neutral-200 bg-white text-neutral-600 rounded-xl font-medium text-sm hover:bg-neutral-50 transition-colors"
                     >
                         <Download className="w-4 h-4" /> Export CSV
@@ -142,7 +160,8 @@ export default function AdminProductsPage() {
             )}
 
             {/* Table */}
-            <div className="overflow-x-auto rounded-2xl border border-neutral-100 bg-white">
+            <div className="rounded-2xl border border-neutral-100 bg-white">
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                     <thead>
                         <tr className="border-b border-neutral-100 text-left">
@@ -197,31 +216,29 @@ export default function AdminProductsPage() {
                                             )}
                                             <div>
                                                 <p className="font-medium truncate max-w-[200px]">{product.name}</p>
-<<<<<<< HEAD
-                                                {product.is_featured && <span className="text-[10px] font-semibold text-amber-600 uppercase">Featured</span>}
-=======
                                                 <div className="flex gap-1">
                                                     {product.is_featured && <span className="text-[10px] font-semibold text-amber-600 uppercase">Featured</span>}
                                                     {product.has_variants && <span className="text-[10px] font-semibold text-blue-600 uppercase border border-blue-200 px-1 rounded">Variants</span>}
                                                 </div>
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                                             </div>
                                         </div>
                                     </td>
                                     <td className="p-4 text-neutral-500 hidden md:table-cell font-mono text-xs">{product.sku}</td>
-<<<<<<< HEAD
-                                    <td className="p-4 font-medium">${Number(product.base_price).toFixed(2)}</td>
-=======
                                     <td className="p-4 font-medium">
                                         {product.has_variants && product.price_range ? (
                                             <span className="text-neutral-900">
                                                 ${Number(product.price_range.min).toFixed(0)} - ${Number(product.price_range.max).toFixed(0)}
                                             </span>
-                                        ) : (
+                                        ) : product.base_price && Number(product.base_price) > 0 ? (
                                             `$${Number(product.base_price).toFixed(2)}`
+                                        ) : product.min_variant_price ? (
+                                            <span className="text-neutral-500">From ${Number(product.min_variant_price).toFixed(2)}</span>
+                                        ) : (
+                                            <span className="text-neutral-400">N/A</span>
                                         )}
                                     </td>
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                                     <td className="p-4 text-neutral-500 hidden lg:table-cell">{product.category_name || '—'}</td>
                                     <td className="p-4">
                                         <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${product.is_active ? statusColors.active : statusColors.inactive
@@ -240,15 +257,24 @@ export default function AdminProductsPage() {
                                             <>
                                                 <div className="fixed inset-0 z-40" onClick={() => setOpenMenu(null)} />
                                                 <div className="absolute right-0 top-full z-50 w-44 rounded-xl shadow-xl border bg-white overflow-hidden">
-                                                    <Link href={`/admin/products/${product.id}`} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-neutral-50" onClick={() => setOpenMenu(null)}>
-                                                        <Eye className="w-4 h-4" /> View
-                                                    </Link>
-                                                    <Link href={`/admin/products/${product.id}/edit`} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-neutral-50" onClick={() => setOpenMenu(null)}>
-                                                        <Edit className="w-4 h-4" /> Edit
-                                                    </Link>
-                                                    <button onClick={() => duplicateMutation.mutate(product.id)} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-neutral-50 w-full text-left">
-                                                        <Copy className="w-4 h-4" /> Duplicate
-                                                    </button>
+                                                    {product.id && (
+                                                        <>
+                                                            <Link href={`/admin/products/${product.id}`} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-neutral-50" onClick={() => setOpenMenu(null)}>
+                                                                <Eye className="w-4 h-4" /> View
+                                                            </Link>
+                                                            <Link href={`/admin/products/${product.id}/edit`} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-neutral-50" onClick={() => setOpenMenu(null)}>
+                                                                <Edit className="w-4 h-4" /> Edit
+                                                            </Link>
+                                                            <button 
+                                                                onClick={() => {
+                                                                    if (product.id) duplicateMutation.mutate(product.id);
+                                                                }} 
+                                                                className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-neutral-50 w-full text-left"
+                                                            >
+                                                                <Copy className="w-4 h-4" /> Duplicate
+                                                            </button>
+                                                        </>
+                                                    )}
                                                     <button onClick={() => { setDeleteTarget({ id: product.id, name: product.name }); setOpenMenu(null); }} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 w-full text-left text-red-500">
                                                         <Trash2 className="w-4 h-4" /> Delete
                                                     </button>
@@ -261,6 +287,7 @@ export default function AdminProductsPage() {
                         )}
                     </tbody>
                 </table>
+                </div>
             </div>
 
             {/* Pagination */}

@@ -7,7 +7,8 @@ import { api } from '@/lib/api';
 import { 
     Plus, Save, Trash2, RefreshCw, CheckCircle, 
     AlertCircle, ChevronLeft, LayoutDashboard, 
-    Settings2, Boxes, Info, Wand2, X
+    Settings2, Boxes, Info, Wand2, X, Upload,
+    Image as ImageIcon
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
@@ -18,6 +19,7 @@ interface Variant {
     price: number;
     stock_quantity: number;
     image_url?: string;
+    image_alt?: string;
     is_default: boolean;
     is_active: boolean;
     position: number;
@@ -65,13 +67,16 @@ export default function ProductVariantsPage() {
     const [matrix, setMatrix] = useState<MatrixRow[]>([]);
     const [showGenerator, setShowGenerator] = useState(false);
     const [manualSelections, setManualSelections] = useState<Record<string, string>>({});
+    const [uploadingVariantId, setUploadingVariantId] = useState<string | null>(null);
 
     // Fetch product
     const { data: productData, isLoading: productLoading } = useQuery({
         queryKey: ['admin-product', productId],
         queryFn: async () => {
+            if (!productId || productId === 'new' || productId === 'undefined') return null;
             return await api.getAdminProductDetail(productId as string);
-        }
+        },
+        enabled: !!productId && productId !== 'new' && productId !== 'undefined'
     });
 
     const product = productData?.product;
@@ -88,8 +93,10 @@ export default function ProductVariantsPage() {
     const { data: variants, isLoading: variantsLoading } = useQuery({
         queryKey: ['product-variants', productId],
         queryFn: async () => {
+            if (!productId || productId === 'new' || productId === 'undefined') return [];
             return await api.getProductVariants(productId as string);
-        }
+        },
+        enabled: !!productId && productId !== 'new' && productId !== 'undefined'
     });
 
     // Auto-select attributes assigned to the product
@@ -141,6 +148,26 @@ export default function ProductVariantsPage() {
             toast.error(err.message || 'Failed to update variant');
         }
     });
+
+    // Handle variant image upload
+    const handleVariantImageUpload = async (variantId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !productId) return;
+
+        setUploadingVariantId(variantId);
+        try {
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            await api.uploadVariantImage(productId as string, variantId, formData);
+            queryClient.invalidateQueries({ queryKey: ['product-variants', productId] });
+            toast.success('Variant image updated');
+        } catch (err) {
+            toast.error('Image upload failed');
+        } finally {
+            setUploadingVariantId(null);
+        }
+    };
 
     // Delete variant mutation
     const deleteVariant = useMutation({
@@ -477,16 +504,12 @@ export default function ProductVariantsPage() {
                                         </button>
                                     </div>
 
-                                    <div className="overflow-hidden rounded-[2rem] border border-neutral-100 shadow-sm bg-neutral-50/30">
-                                        <table className="w-full text-left border-collapse">
+                                    <div className="overflow-x-auto overflow-y-hidden rounded-[2rem] border border-neutral-100 shadow-sm bg-neutral-50/30 pb-2">
+                                        <table className="min-w-max w-full text-left border-collapse">
                                             <thead>
                                                 <tr className="bg-neutral-50/50">
                                                     <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400 w-16">Def</th>
-                                                    {selectedAttributes.map((attr: Attribute) => (
-                                                        <th key={attr.id} className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400">
-                                                            {attr.name}
-                                                        </th>
-                                                    ))}
+                                                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400">Configurations</th>
                                                     <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400">SKU / Price / Stock</th>
                                                 </tr>
                                             </thead>
@@ -496,6 +519,7 @@ export default function ProductVariantsPage() {
                                                         <td className="px-6 py-4">
                                                             <input
                                                                 type="radio"
+                                                                id={`default-variant-${row.tempId}`}
                                                                 name="default_variant"
                                                                 checked={row.is_default}
                                                                 onChange={() => {
@@ -507,25 +531,34 @@ export default function ProductVariantsPage() {
                                                                 className="w-4 h-4 text-primary-orange focus:ring-primary-orange"
                                                             />
                                                         </td>
-                                                        {selectedAttributes.map((attr: Attribute) => {
-                                                            const optId = row.combinations[attr.id];
-                                                            const opt = attr.options.find(o => o.id === optId);
-                                                            return (
-                                                                <td key={attr.id} className="px-6 py-4">
-                                                                    {attr.type === 'color' && opt?.color_hex ? (
-                                                                        <div className="flex items-center gap-2">
-                                                                            <div className="w-4 h-4 rounded-full border border-neutral-200" style={{ backgroundColor: opt.color_hex }} />
-                                                                            <span className="text-sm font-bold text-neutral-700">{opt.value}</span>
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex flex-wrap gap-2 max-w-sm lg:max-w-md">
+                                                                {selectedAttributes.map((attr: Attribute) => {
+                                                                    const optId = row.combinations[attr.id];
+                                                                    const opt = attr.options.find(o => o.id === optId);
+                                                                    if (!opt) return null;
+                                                                    return (
+                                                                        <div 
+                                                                            key={attr.id}
+                                                                            className="px-2.5 py-1.5 bg-neutral-100 rounded-xl flex items-center gap-2 border border-neutral-200/50"
+                                                                        >
+                                                                            <span className="text-[9px] font-black text-neutral-400 uppercase tracking-widest">{attr.name}</span>
+                                                                            <div className="flex items-center gap-1.5">
+                                                                                {attr.type === 'color' && opt.color_hex && (
+                                                                                    <div className="w-2.5 h-2.5 rounded-full border border-neutral-300" style={{ backgroundColor: opt.color_hex }} />
+                                                                                )}
+                                                                                <span className="text-xs font-bold text-neutral-700">{opt.value}</span>
+                                                                            </div>
                                                                         </div>
-                                                                    ) : (
-                                                                        <span className="text-sm font-bold text-neutral-700">{opt?.value}</span>
-                                                                    )}
-                                                                </td>
-                                                            );
-                                                        })}
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </td>
                                                         <td className="px-6 py-4">
                                                             <div className="flex items-center gap-3">
                                                                 <input
+                                                                    id={`sku-${row.tempId}`}
+                                                                    name={`sku-${row.tempId}`}
                                                                     value={row.sku}
                                                                     onChange={(e) => updateRow(row.tempId, 'sku', e.target.value)}
                                                                     className="w-32 px-3 py-1.5 bg-neutral-50 border border-neutral-100 rounded-lg text-xs font-mono outline-none focus:ring-2 focus:ring-primary-orange/20"
@@ -533,6 +566,8 @@ export default function ProductVariantsPage() {
                                                                 <div className="relative">
                                                                     <span className="absolute left-2.5 top-1.5 text-[10px] font-bold text-neutral-400">$</span>
                                                                     <input
+                                                                        id={`price-${row.tempId}`}
+                                                                        name={`price-${row.tempId}`}
                                                                         type="number"
                                                                         step="0.01"
                                                                         value={row.price}
@@ -541,6 +576,8 @@ export default function ProductVariantsPage() {
                                                                     />
                                                                 </div>
                                                                 <input
+                                                                    id={`stock-${row.tempId}`}
+                                                                    name={`stock-${row.tempId}`}
                                                                     type="number"
                                                                     placeholder="Stock"
                                                                     value={row.stock_quantity}
@@ -575,10 +612,11 @@ export default function ProductVariantsPage() {
                     </div>
 
                     {variants && variants.length > 0 ? (
-                        <div className="overflow-x-auto -mx-8">
-                            <table className="w-full text-left border-collapse">
+                        <div className="overflow-x-auto -mx-8 px-8 pb-4 custom-scrollbar">
+                            <table className="min-w-max w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-neutral-50/50">
+                                        <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400">Media</th>
                                         <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400">Identity</th>
                                         <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400">Configurations</th>
                                         <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400">Pricing & Inventory</th>
@@ -589,6 +627,32 @@ export default function ProductVariantsPage() {
                                 <tbody className="divide-y divide-neutral-50">
                                     {variants.map((variant: Variant) => (
                                         <tr key={variant.id} className="hover:bg-neutral-50/30 transition-colors">
+                                            <td className="px-8 py-6">
+                                                <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-neutral-100 border border-neutral-200 group">
+                                                    {variant.image_url ? (
+                                                        <img src={variant.image_url} alt={variant.sku} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-neutral-300">
+                                                            <ImageIcon className="w-6 h-6" />
+                                                        </div>
+                                                    )}
+                                                    
+                                                    <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity">
+                                                        {uploadingVariantId === variant.id ? (
+                                                            <RefreshCw className="w-5 h-5 text-white animate-spin" />
+                                                        ) : (
+                                                            <Upload className="w-5 h-5 text-white" />
+                                                        )}
+                                                        <input 
+                                                            type="file" 
+                                                            accept="image/*" 
+                                                            className="hidden" 
+                                                            disabled={uploadingVariantId === variant.id}
+                                                            onChange={(e) => handleVariantImageUpload(variant.id, e)} 
+                                                        />
+                                                    </label>
+                                                </div>
+                                            </td>
                                             <td className="px-8 py-6">
                                                 <div className="flex items-center gap-3">
                                                     {variant.is_default ? (

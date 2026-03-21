@@ -36,11 +36,10 @@ const reviewRoutes = require('./routes/reviews');
 const categoryRoutes = require('./routes/categories');
 const invitationRoutes = require('./routes/invitations');
 const contactRoutes = require('./routes/contact');
-<<<<<<< HEAD
-=======
 const attributeRoutes = require('./routes/attributes');
 const productVariantRoutes = require('./routes/productVariants');
->>>>>>> d1d77d0 (dashboard and variants edits)
+const currenciesPublicRoutes = require('./routes/currencies');
+const publicSettingsRoutes = require('./routes/publicSettings');
 
 // ─── Create Express App ─────────────────────────────────────
 const app = express();
@@ -64,9 +63,6 @@ app.set('trust proxy', 1);
 // ═══════════════════════════════════════════════════════════════
 app.use(helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
-<<<<<<< HEAD
-    contentSecurityPolicy: false,
-=======
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
@@ -82,17 +78,12 @@ app.use(helmet({
             upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
         },
     },
->>>>>>> d1d77d0 (dashboard and variants edits)
     hsts: {
         maxAge: 31536000,
         includeSubDomains: true,
         preload: true
-<<<<<<< HEAD
-    }
-=======
     },
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
->>>>>>> d1d77d0 (dashboard and variants edits)
 }));
 
 // ═══════════════════════════════════════════════════════════════
@@ -115,11 +106,7 @@ const getAllowedOrigins = () => {
         }
         return origins;
     }
-<<<<<<< HEAD
-    return ['http://localhost:5173', 'http://localhost:3000'];
-=======
     return ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'];
->>>>>>> d1d77d0 (dashboard and variants edits)
 };
 
 app.use(cors({
@@ -162,12 +149,8 @@ app.use(session({
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-<<<<<<< HEAD
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-=======
         sameSite: 'lax', // CSRF protection: prevents cross-site cookie sending
         domain: process.env.COOKIE_DOMAIN || undefined,
->>>>>>> d1d77d0 (dashboard and variants edits)
     },
 }));
 
@@ -183,7 +166,7 @@ app.use(passport.session());
 
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    max: 1000,
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res) => {
@@ -275,17 +258,16 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 
-<<<<<<< HEAD
-=======
 // Variant system routes
 app.use('/api/attributes', attributeRoutes);
 app.use('/api/products/:productId/variants', productVariantRoutes);
+app.use('/api/currencies', currenciesPublicRoutes);
+app.use('/api/settings', publicSettingsRoutes);
 
 // Migration routes (admin only)
 const migrationsRoutes = require('./routes/migrations');
 app.use('/api/admin', migrationsRoutes);
 
->>>>>>> d1d77d0 (dashboard and variants edits)
 // ═══════════════════════════════════════════════════════════════
 //  12. 404 HANDLER
 // ═══════════════════════════════════════════════════════════════

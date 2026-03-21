@@ -20,12 +20,8 @@ export default function ContactPage() {
         setError(null);
 
         try {
-<<<<<<< HEAD
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-            const res = await fetch(`${apiUrl}/contact`, {
-=======
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/contact`, {
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

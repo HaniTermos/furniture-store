@@ -16,7 +16,6 @@
   --admin-text-secondary: #737373;
   --admin-text-muted: #9CA3AF;
   --accent-orange-alpha: rgba(249, 115, 22, 0.1);
-<<<<<<< HEAD
 
   /* Z-Index System */
   --z-negative: -1;
@@ -32,8 +31,6 @@
   --z-tooltip: 1800;
   --z-toast: 2000;
   --z-search-palette: 2100;
-=======
->>>>>>> d1d77d0 (dashboard and variants edits)
 }
 
 .dark {
@@ -48,11 +45,8 @@
   --admin-text-secondary: #A1A1AA;
   --admin-text-muted: #52525B;
   --accent-orange-alpha: rgba(249, 115, 22, 0.15);
-<<<<<<< HEAD
 
   /* Z-Index System Inherited */
-=======
->>>>>>> d1d77d0 (dashboard and variants edits)
 }
 
 /* ===== Lenis Smooth Scroll ===== */

@@ -162,11 +162,8 @@ function SalesByCategoryChart({ data }: { data: SalesCategory[] }) {
                     </Pie>
                     <Tooltip
                         contentStyle={{ background: 'rgba(0,0,0,0.85)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '13px' }}
-<<<<<<< HEAD
-                        formatter={(value: number) => [`$${Number(value).toFixed(2)}`, 'Revenue']}
-=======
                         formatter={(value: unknown) => [`$${Number(value || 0).toFixed(2)}`, 'Revenue']}
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                     />
                 </PieChart>
             </ResponsiveContainer>

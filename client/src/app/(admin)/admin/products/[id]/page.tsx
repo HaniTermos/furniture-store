@@ -23,9 +23,6 @@ export default function AdminProductViewPage({ params }: { params: { id: string 
     if (!p) return <div className="p-12 text-center text-neutral-500">Product not found</div>;
 
     const images = p.images || (p.primary_image ? [{ image_url: p.primary_image }] : []);
-<<<<<<< HEAD
-    const stockTotal = p.configurations?.reduce((sum: number, c: any) => sum + (c.stock_quantity || 0), 0) || 0;
-=======
     const isConfigurable = p.is_configurable || false;
     // Flatten configuration_options → values for display
     const configValues = (p.configuration_options || []).flatMap((opt: any) =>
@@ -36,7 +33,7 @@ export default function AdminProductViewPage({ params }: { params: { id: string 
         : isConfigurable
             ? (configValues.reduce((sum: number, c: any) => sum + (c.stock_quantity || 0), 0) || 0)
             : (p.stock_quantity || 0);
->>>>>>> d1d77d0 (dashboard and variants edits)
+
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
@@ -56,14 +53,6 @@ export default function AdminProductViewPage({ params }: { params: { id: string 
                         <p className="text-sm text-neutral-500 font-mono mt-1">SKU: {p.sku || 'N/A'}</p>
                     </div>
                 </div>
-<<<<<<< HEAD
-                <Link
-                    href={`/admin/products/${p.id}/edit`}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-neutral-900 text-white rounded-xl text-sm font-medium hover:bg-neutral-800 transition-colors"
-                >
-                    <Edit className="w-4 h-4" /> Edit Product
-                </Link>
-=======
                 <div className="flex items-center gap-2">
                     <Link
                         href={`/admin/products/${p.id}/variants`}
@@ -78,27 +67,31 @@ export default function AdminProductViewPage({ params }: { params: { id: string 
                         <Edit className="w-4 h-4" /> Edit Product
                     </Link>
                 </div>
->>>>>>> d1d77d0 (dashboard and variants edits)
+
             </div>
 
             {/* Quick Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="p-4 rounded-xl border border-neutral-100 bg-white flex items-center gap-4">
                     <div className="p-3 bg-emerald-100 text-emerald-600 rounded-lg"><Tag className="w-5 h-5" /></div>
-<<<<<<< HEAD
-                    <div><p className="text-xs text-neutral-500 font-medium tracking-wide uppercase">Price</p><p className="text-xl font-bold">${Number(p.base_price).toFixed(2)}</p></div>
-=======
                     <div>
                         <p className="text-xs text-neutral-500 font-medium tracking-wide uppercase">Price</p>
                         <p className="text-xl font-bold">
-                            {p.has_variants && p.price_range ? (
-                                `$${Number(p.price_range.min).toFixed(0)} - $${Number(p.price_range.max).toFixed(0)}`
-                            ) : (
+                            {p.has_variants && p.variants && p.variants.length > 0 ? (
+                                (() => {
+                                    const prices = p.variants.filter((v: any) => v.is_active).map((v: any) => Number(v.price));
+                                    const min = Math.min(...prices);
+                                    const max = Math.max(...prices);
+                                    return min === max ? `$${min.toFixed(2)}` : `$${min.toFixed(0)} - $${max.toFixed(0)}`;
+                                })()
+                            ) : p.base_price && Number(p.base_price) > 0 ? (
                                 `$${Number(p.base_price).toFixed(2)}`
+                            ) : (
+                                <span className="text-neutral-400">N/A</span>
                             )}
                         </p>
                     </div>
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                 </div>
                 <div className="p-4 rounded-xl border border-neutral-100 bg-white flex items-center gap-4">
                     <div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><Archive className="w-5 h-5" /></div>
@@ -122,11 +115,8 @@ export default function AdminProductViewPage({ params }: { params: { id: string 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {images.length > 0 ? (
                                 <div className="md:col-span-2 relative aspect-video bg-neutral-100 rounded-xl overflow-hidden shadow-sm">
-<<<<<<< HEAD
-                                    <Image src={images[0]?.image_url} alt={p.name} fill className="object-cover" />
-=======
                                     <Image src={images[0]?.image_url} alt={p.name} fill sizes="(max-width: 1280px) 100vw, 66vw" className="object-cover" />
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                                 </div>
                             ) : (
                                 <div className="md:col-span-2 h-64 bg-neutral-50 rounded-xl border-2 border-dashed border-neutral-200 flex flex-col items-center justify-center text-neutral-400">
@@ -139,10 +129,57 @@ export default function AdminProductViewPage({ params }: { params: { id: string 
                         {/* Description */}
                         <div>
                             <h3 className="font-semibold text-lg mb-3">Description</h3>
+                            {p.short_description && (
+                                <p className="text-sm text-neutral-500 italic mb-3 border-l-2 border-primary-orange/30 pl-3">
+                                    {p.short_description}
+                                </p>
+                            )}
                             <div className="text-sm text-neutral-600 leading-relaxed whitespace-pre-wrap">
                                 {p.description || 'No description provided.'}
                             </div>
                         </div>
+
+                        {/* Specifications */}
+                        {p.specifications && Object.keys(p.specifications).length > 0 && (
+                            <div>
+                                <h3 className="font-semibold text-lg mb-3">Specifications</h3>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {Object.entries(p.specifications).map(([key, value]: [string, any]) => (
+                                        <div key={key} className="flex justify-between items-center py-2 px-3 bg-neutral-50 rounded-lg">
+                                            <span className="text-xs text-neutral-500 font-medium uppercase">{key.replace(/_/g, ' ')}</span>
+                                            <span className="text-sm font-medium text-neutral-800">{String(value)}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Pricing Breakdown */}
+                        {(p.base_price || p.cost_price) && (
+                            <div>
+                                <h3 className="font-semibold text-lg mb-3">Pricing Details</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    {p.base_price && Number(p.base_price) > 0 && (
+                                        <div className="p-3 bg-neutral-50 rounded-lg">
+                                            <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest">Base Price</p>
+                                            <p className="text-lg font-bold text-neutral-900">${Number(p.base_price).toFixed(2)}</p>
+                                        </div>
+                                    )}
+                                    {p.original_price && Number(p.original_price) > 0 && (
+                                        <div className="p-3 bg-neutral-50 rounded-lg">
+                                            <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest">Original Price</p>
+                                            <p className="text-lg font-bold text-neutral-500 line-through">${Number(p.original_price).toFixed(2)}</p>
+                                        </div>
+                                    )}
+                                    {p.cost_price && Number(p.cost_price) > 0 && (
+                                        <div className="p-3 bg-neutral-50 rounded-lg">
+                                            <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest">Cost Price</p>
+                                            <p className="text-lg font-bold text-neutral-700">${Number(p.cost_price).toFixed(2)}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -165,37 +202,6 @@ export default function AdminProductViewPage({ params }: { params: { id: string 
                     {/* Stock & Variations */}
                     <div className="rounded-2xl border border-neutral-100 bg-white overflow-hidden">
                         <div className="px-6 py-4 border-b border-neutral-100 flex justify-between items-center">
-<<<<<<< HEAD
-                            <h3 className="font-semibold flex items-center gap-2"><Archive className="w-4 h-4" /> Variations Details</h3>
-                        </div>
-                        <div className="p-0">
-                            {(!p.configurations || p.configurations.length === 0) ? (
-                                <div className="p-6 text-center text-sm text-neutral-500">No variations configured for this product.</div>
-                            ) : (
-                                <table className="w-full text-sm text-left">
-                                    <thead className="bg-neutral-50 text-neutral-500 font-medium">
-                                        <tr>
-                                            <th className="px-6 py-3">Variant</th>
-                                            <th className="px-6 py-3">Stock</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-neutral-100">
-                                        {p.configurations.map((cfg: any, i: number) => (
-                                            <tr key={i}>
-                                                <td className="px-6 py-4 text-neutral-700">
-                                                    <span className="text-neutral-500 capitalize">{cfg.option_name}:</span> <span className="font-medium">{cfg.value}</span>
-                                                    {parseFloat(cfg.price_adjustment) > 0 && <span className="ml-2 text-xs text-primary-orange">(+${parseFloat(cfg.price_adjustment).toFixed(2)})</span>}
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`px-2 py-0.5 rounded font-bold ${cfg.stock_quantity <= 3 ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'}`}>
-                                                        {cfg.stock_quantity || 0}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-=======
                             <h3 className="font-semibold flex items-center gap-2">
                                 <Archive className="w-4 h-4" />
                                 {isConfigurable ? 'Variations Details' : 'Stock Details'}
@@ -233,6 +239,17 @@ export default function AdminProductViewPage({ params }: { params: { id: string 
                                                 </tr>
                                             ))}
                                         </tbody>
+                                        <tfoot className="bg-neutral-50 border-t border-neutral-200">
+                                            <tr>
+                                                <td className="px-6 py-3 font-bold text-neutral-700">Total ({p.variants.length} variants)</td>
+                                                <td className="px-6 py-3 text-right"></td>
+                                                <td className="px-6 py-3 text-right">
+                                                    <span className="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-600">
+                                                        {p.variants.reduce((sum: number, v: any) => sum + (v.stock_quantity || 0), 0)}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 )
                             ) : isConfigurable ? (
@@ -293,7 +310,7 @@ export default function AdminProductViewPage({ params }: { params: { id: string 
                                         <span className="text-sm font-medium text-neutral-700">Below {p.low_stock_threshold || 5} units</span>
                                     </div>
                                 </div>
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                             )}
                         </div>
                     </div>

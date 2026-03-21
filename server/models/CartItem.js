@@ -1,19 +1,6 @@
 const pool = require('../config/database'); // Note typo correction to config/database
 
 const CartItem = {
-<<<<<<< HEAD
-    async add({ user_id, session_id, product_id, quantity, configuration, unit_price }, dbClient = pool) {
-        // Check if same product + config already in cart
-        const existingQuery = user_id
-            ? `SELECT * FROM cart_items WHERE user_id = $1 AND product_id = $2 AND configuration = $3`
-            : `SELECT * FROM cart_items WHERE session_id = $1 AND product_id = $2 AND configuration = $3`;
-        const identifier = user_id || session_id;
-        const configJson = configuration ? JSON.stringify(configuration) : null;
-
-        const { rows: existing } = await dbClient.query(existingQuery, [identifier, product_id, configJson]);
-
-        if (existing.length > 0) {
-=======
     async add({ user_id, session_id, product_id, variant_id, quantity, configuration, unit_price }, dbClient = pool) {
         const identifier = user_id || session_id;
         const configJson = configuration ? JSON.stringify(configuration) : null;
@@ -48,7 +35,7 @@ const CartItem = {
                 }
             }
             
->>>>>>> d1d77d0 (dashboard and variants edits)
+
             // Update quantity
             const { rows } = await dbClient.query(
                 `UPDATE cart_items SET quantity = quantity + $1, updated_at = CURRENT_TIMESTAMP
@@ -58,18 +45,11 @@ const CartItem = {
             return rows[0];
         }
 
-<<<<<<< HEAD
-        const { rows } = await dbClient.query(
-            `INSERT INTO cart_items (user_id, session_id, product_id, quantity, configuration, unit_price)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-            [user_id || null, session_id || null, product_id, quantity, configJson, unit_price]
-        );
-=======
         const insertQuery = `INSERT INTO cart_items (user_id, session_id, product_id, variant_id, quantity, configuration, unit_price)
        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`;
         const insertParams = [user_id || null, session_id || null, product_id, variant_id || null, quantity, configJson, unit_price];
         const { rows } = await dbClient.query(insertQuery, insertParams);
->>>>>>> d1d77d0 (dashboard and variants edits)
+
         return rows[0];
     },
 
@@ -116,8 +96,8 @@ const CartItem = {
         return rowCount > 0;
     },
 
-    async clearCart(user_id) {
-        await pool.query(`DELETE FROM cart_items WHERE user_id = $1`, [user_id]);
+    async clearCart(user_id, dbClient = pool) {
+        await dbClient.query(`DELETE FROM cart_items WHERE user_id = $1`, [user_id]);
     },
 
     async transferGuestCart(session_id, user_id) {
@@ -133,7 +113,9 @@ const CartItem = {
         const { rows } = await pool.query(
             `SELECT COALESCE(SUM(unit_price * quantity), 0) AS total,
               COALESCE(SUM(quantity), 0) AS item_count
-       FROM cart_items WHERE user_id = $1`,
+       FROM cart_items ci
+       JOIN products p ON p.id = ci.product_id AND p.is_deleted = false
+       WHERE ci.user_id = $1`,
             [user_id]
         );
         return rows[0];

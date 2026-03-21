@@ -7,6 +7,10 @@ import { ArrowLeft, ArrowRight, CreditCard, MapPin, Package, CheckCircle2 } from
 import { useCartStore } from '@/store/cart';
 import { useCurrency } from '@/hooks/useCurrency';
 import { Reveal } from '@/components/motion/Reveal';
+import { api } from '@/lib/api';
+import { useAppStore } from '@/store';
+import { toast } from 'react-hot-toast';
+import { Tag } from 'lucide-react';
 
 const steps = [
     { id: 1, label: 'Shipping', icon: MapPin },
@@ -20,7 +24,13 @@ export default function CheckoutPage() {
     const { items, subtotal, clearCart } = useCartStore();
     const { formatPrice, calculateTotal, showLbp } = useCurrency();
     const sub = subtotal();
-    const totals = calculateTotal(sub);
+    
+    // Array of coupon definitions
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState<{code: string, discount: number, type: string} | null>(null);
+    const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+
+    const totals = calculateTotal(sub, appliedCoupon?.discount);
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -34,13 +44,87 @@ export default function CheckoutPage() {
         country: 'Lebanon',
     });
 
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const { user } = useAppStore();
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handlePlaceOrder = () => {
-        setOrderPlaced(true);
-        clearCart();
+    const handlePlaceOrder = async () => {
+        if (!user) {
+            toast.error('Please log in to place an order.');
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            // 1. Sync local cart to server to ensure accurate order creation
+            await api.syncCart(items.map(item => ({
+                product_id: item.product.id,
+                variant_id: item.variant?.id || null,
+                quantity: item.quantity,
+                configuration: {
+                    color: item.selectedColor?.id,
+                    size: item.selectedSize?.id
+                }
+            })));
+
+            // 2. Place the order
+            await api.placeOrder({
+                shipping_address: {
+                    name: `${formData.firstName} ${formData.lastName}`,
+                    email: formData.email,
+                    phone: formData.phone,
+                    address: formData.address,
+                    city: formData.city,
+                    zipCode: formData.zipCode,
+                    country: formData.country,
+                },
+                payment_method: 'credit_card',
+                coupon_code: appliedCoupon?.code || undefined,
+                notes: 'Order placed via website checkout',
+            });
+
+            setOrderPlaced(true);
+            clearCart();
+            toast.success('Order placed successfully!');
+        } catch (err: any) {
+            const message = err.message || 'Failed to place order. Please try again.';
+            setError(message);
+            toast.error(message);
+            console.error('Checkout error:', err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleApplyCoupon = async () => {
+        if (!couponCode.trim()) return;
+        setIsApplyingCoupon(true);
+        try {
+            // We pass the base subtotal to check minimum purchase
+            const res = await api.validateCoupon(couponCode);
+            setAppliedCoupon({
+                code: res.coupon.code,
+                discount: res.discount,
+                type: res.coupon.type
+            });
+            toast.success('Coupon applied successfully!');
+            setCouponCode('');
+        } catch (err: any) {
+            toast.error(err.message || 'Invalid or expired coupon');
+        } finally {
+            setIsApplyingCoupon(false);
+        }
+    };
+
+    const handleRemoveCoupon = () => {
+        setAppliedCoupon(null);
+        toast.success('Coupon removed');
     };
 
     if (orderPlaced) {
@@ -273,7 +357,9 @@ export default function CheckoutPage() {
                                     <h2 className="text-2xl font-bold mb-6">Review Your Order</h2>
                                     <div className="space-y-4">
                                         {items.map((item) => {
-                                            const price = item.product.price + (item.selectedSize?.priceAdjustment || 0);
+                                            const basePrice = Number(item.variant?.price ?? item.product.base_price ?? item.product.price ?? 0);
+                                            const sizeAdjustment = item.selectedSize?.priceAdjustment || 0;
+                                            const finalPrice = basePrice + sizeAdjustment;
                                             return (
                                                 <div key={item.id} className="flex gap-4 py-3 border-b border-neutral-100 last:border-0">
                                                     <div className="w-16 h-16 bg-neutral-100 rounded-lg flex-shrink-0" />
@@ -281,7 +367,7 @@ export default function CheckoutPage() {
                                                         <p className="font-medium text-sm">{item.product.name}</p>
                                                         <p className="text-xs text-neutral-400">Qty: {item.quantity}</p>
                                                     </div>
-                                                    <p className="font-medium text-sm">{formatPrice(price * item.quantity).display}</p>
+                                                    <p className="font-medium text-sm">{formatPrice(finalPrice * item.quantity).display}</p>
                                                 </div>
                                             );
                                         })}
@@ -298,14 +384,42 @@ export default function CheckoutPage() {
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-4 mt-8">
+                                    {/* Coupon Input on Step 3 */}
+                                    <div className="mt-8 pt-6 border-t border-neutral-100">
+                                        <h3 className="font-medium mb-3 flex items-center gap-2">
+                                            <Tag className="w-4 h-4 text-neutral-400" />
+                                            Gift Card or Discount Code
+                                        </h3>
+                                        <div className="flex gap-2">
+                                            <input
+                                                value={couponCode}
+                                                onChange={(e) => setCouponCode(e.target.value)}
+                                                placeholder="Enter code"
+                                                className="flex-1 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary-orange focus:ring-2 focus:ring-primary-orange/10 transition-all uppercase"
+                                                disabled={isApplyingCoupon || !!appliedCoupon}
+                                            />
+                                            <button 
+                                                onClick={handleApplyCoupon}
+                                                disabled={!couponCode.trim() || isApplyingCoupon || !!appliedCoupon}
+                                                className="px-6 py-2.5 bg-neutral-900 text-white text-sm font-medium rounded-xl hover:bg-neutral-800 disabled:opacity-50 transition-all"
+                                            >
+                                                {isApplyingCoupon ? 'Applying...' : 'Apply'}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-4 mt-8 pt-6 border-t border-neutral-100">
                                         <button onClick={() => setCurrentStep(2)} className="btn-outline">
                                             <ArrowLeft className="w-4 h-4" />
                                             Back
                                         </button>
-                                        <button onClick={handlePlaceOrder} className="btn-primary">
-                                            Place Order — {totals.formatted.total.display}
-                                            <ArrowRight className="w-4 h-4" />
+                                        <button 
+                                            onClick={handlePlaceOrder} 
+                                            disabled={isLoading}
+                                            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {isLoading ? 'Processing...' : `Place Order — ${totals.formatted.total.display}`}
+                                            {!isLoading && <ArrowRight className="w-4 h-4" />}
                                         </button>
                                     </div>
                                 </Reveal>
@@ -331,6 +445,16 @@ export default function CheckoutPage() {
                                             {totals.shippingUsd === 0 ? 'Free' : totals.formatted.shipping.display}
                                         </span>
                                     </div>
+                                    {appliedCoupon && (
+                                        <div className="flex justify-between text-green-600 font-medium">
+                                            <span className="flex items-center gap-1.5">
+                                                <Tag className="w-3.5 h-3.5" />
+                                                Discount ({appliedCoupon.code})
+                                                <button onClick={handleRemoveCoupon} className="text-xs text-neutral-400 hover:text-red-500 underline ml-2">Remove</button>
+                                            </span>
+                                            <span>-{formatPrice(appliedCoupon.discount).display}</span>
+                                        </div>
+                                    )}
                                     <div className="border-t border-neutral-200 pt-3">
                                         <div className="flex justify-between">
                                             <span className="font-semibold text-lg">Total</span>

@@ -2,11 +2,8 @@
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-<<<<<<< HEAD
-import { Search, SlidersHorizontal, Grid3X3, List, X, ChevronDown } from 'lucide-react';
-=======
 import { Search, SlidersHorizontal, Grid3X3, List, X, ChevronDown, Check } from 'lucide-react';
->>>>>>> d1d77d0 (dashboard and variants edits)
+
 import ProductCard from '@/components/product/ProductCard';
 import { Reveal } from '@/components/motion/Reveal';
 import { useQuery } from '@tanstack/react-query';
@@ -20,34 +17,27 @@ const sortOptions = [
     { label: 'Most Popular', value: 'popular' },
 ];
 
-<<<<<<< HEAD
-=======
 interface AttributeFilter {
     name: string;
     type: string;
     values: Array<{ value: string; image_url: string | null }>;
 }
 
->>>>>>> d1d77d0 (dashboard and variants edits)
+
 export default function ShopPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState('newest');
     const [showFilters, setShowFilters] = useState(false);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-<<<<<<< HEAD
-=======
     const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string[]>>({});
->>>>>>> d1d77d0 (dashboard and variants edits)
+
 
     const { data, isLoading } = useQuery({
         queryKey: ['products'],
         queryFn: () => api.getProducts()
     });
 
-<<<<<<< HEAD
-    const products = data?.products || [];
-=======
     const { data: filtersData } = useQuery({
         queryKey: ['product-filters'],
         queryFn: () => api.getProductFilters()
@@ -73,7 +63,7 @@ export default function ShopPage() {
             return updated;
         });
     };
->>>>>>> d1d77d0 (dashboard and variants edits)
+
 
     const filteredProducts = useMemo(() => {
         let filtered = [...products];
@@ -94,8 +84,6 @@ export default function ShopPage() {
             filtered = filtered.filter((p) => p.categorySlug === selectedCategory);
         }
 
-<<<<<<< HEAD
-=======
         // Attribute filters
         Object.entries(selectedAttributes).forEach(([attrName, selectedValues]) => {
             if (selectedValues.length > 0) {
@@ -109,7 +97,7 @@ export default function ShopPage() {
             }
         });
 
->>>>>>> d1d77d0 (dashboard and variants edits)
+
         // Sort
         switch (sortBy) {
             case 'price_asc':
@@ -128,13 +116,10 @@ export default function ShopPage() {
         }
 
         return filtered;
-<<<<<<< HEAD
-    }, [products, searchQuery, selectedCategory, sortBy]);
-=======
     }, [products, searchQuery, selectedCategory, sortBy, selectedAttributes]);
 
     const hasActiveFilters = selectedCategory || Object.values(selectedAttributes).some(v => v.length > 0);
->>>>>>> d1d77d0 (dashboard and variants edits)
+
 
     return (
         <>
@@ -250,27 +235,6 @@ export default function ShopPage() {
                                 transition={{ duration: 0.3 }}
                                 className="overflow-hidden"
                             >
-<<<<<<< HEAD
-                                <div className="flex flex-wrap gap-2 pb-4">
-                                    <button
-                                        onClick={() => setSelectedCategory(null)}
-                                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${!selectedCategory
-                                            ? 'bg-primary-black text-white'
-                                            : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                                            }`}
-                                    >
-                                        All
-                                    </button>
-                                    {categories.map((cat) => (
-                                        <button
-                                            key={cat.id}
-                                            onClick={() =>
-                                                setSelectedCategory(
-                                                    selectedCategory === cat.slug ? null : cat.slug
-                                                )
-                                            }
-                                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCategory === cat.slug
-=======
                                 <div className="pb-4 space-y-4">
                                     {/* Categories */}
                                     <div className="flex flex-wrap gap-2">
@@ -278,16 +242,11 @@ export default function ShopPage() {
                                         <button
                                             onClick={() => setSelectedCategory(null)}
                                             className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${!selectedCategory
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                                                 ? 'bg-primary-black text-white'
                                                 : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                                                 }`}
                                         >
-<<<<<<< HEAD
-                                            {cat.name}
-                                        </button>
-                                    ))}
-=======
                                             All
                                         </button>
                                         {categories.map((cat) => (
@@ -379,7 +338,7 @@ export default function ShopPage() {
                                             </button>
                                         </div>
                                     )}
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                                 </div>
                             </motion.div>
                         )}

@@ -1,0 +1,212 @@
+
+> server@1.0.0 test
+> cross-env NODE_ENV=test jest --runInBand --detectOpenHandles
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env.test -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (18) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    Test database schema globally initialized.
+
+      at Object.log (tests/setup.js:33:17)
+
+[2026-03-19T14:00:51.060Z] GET /health 200 4.166 ms | RequestID: 2af51044-6504-489f-9965-fa7ab3a792a5
+FAIL tests/db.test.js
+  Database Connection
+    √ should connect to the test database successfully (10 ms)
+    × should have the correct test database name in connection (9 ms)
+    √ should have health endpoint working (81 ms)
+
+  ● Database Connection › should have the correct test database name in connection
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "furniture_store_test"
+    Received: "furniture_store"
+
+    [0m [90m 11 |[39m     it([32m'should have the correct test database name in connection'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+     [90m 12 |[39m         [36mconst[39m res [33m=[39m [36mawait[39m pool[33m.[39mquery([32m'SELECT current_database()'[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 13 |[39m         expect(res[33m.[39mrows[[35m0[39m][33m.[39mcurrent_database)[33m.[39mtoBe([32m'furniture_store_test'[39m)[33m;[39m
+     [90m    |[39m                                              [31m[1m^[22m[39m
+     [90m 14 |[39m     })[33m;[39m
+     [90m 15 |[39m
+     [90m 16 |[39m     it([32m'should have health endpoint working'[39m[33m,[39m [36masync[39m () [33m=>[39m {[0m
+
+      at Object.toBe (tests/db.test.js:13:46)
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env.test -- tip: 🤖 agentic secret storage: https://dotenvx.com/as2
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (18) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    Test database schema globally initialized.
+
+      at Object.log (tests/setup.js:33:17)
+
+  console.log
+    [2026-03-19T14:00:53.175Z] [INFO] [EMAIL STUB] To: cartops2@example.com | Subject: Welcome to HTW Furniture — Please Verify Your Email
+
+      at Object.log [as info] (utils/logger.js:3:17)
+
+[2026-03-19T14:00:53.188Z] POST /api/auth/register 201 396.636 ms | RequestID: 04fa783e-abe8-423c-95e7-9083068e921e
+[2026-03-19T14:00:53.298Z] DELETE /api/cart 200 19.965 ms | RequestID: 4dba816d-83ab-425c-b6e6-9dd262aa0167
+[2026-03-19T14:00:53.355Z] POST /api/cart 201 41.241 ms | RequestID: 1580cc6b-6f80-4c22-b6c9-1fdc786c5467
+[2026-03-19T14:00:53.380Z] DELETE /api/cart 200 7.481 ms | RequestID: ab7f81d6-1fd6-40ca-901d-3c9f27bd5686
+[2026-03-19T14:00:53.413Z] POST /api/cart 404 13.241 ms | RequestID: b42877cf-acff-4b2f-a664-9804ddbfd961
+[2026-03-19T14:00:53.436Z] DELETE /api/cart 200 7.194 ms | RequestID: 87ba5021-b7a7-46ec-9d24-140fc8751c16
+[2026-03-19T14:00:53.477Z] POST /api/cart 201 19.331 ms | RequestID: 1b8978ba-c071-4095-94cf-037d5ccfc9e0
+[2026-03-19T14:00:53.510Z] PUT /api/cart/3cef1991-7f1e-4941-b764-1aac9c10f9fd 200 17.207 ms | RequestID: 8c1b564f-45ed-45f4-a832-02fd931c764c
+[2026-03-19T14:00:53.535Z] DELETE /api/cart 200 8.451 ms | RequestID: 937335b0-00cd-4cac-b33f-f6ea3ba99944
+[2026-03-19T14:00:53.557Z] PUT /api/cart/some-fake-id 400 6.152 ms | RequestID: 5b09f4da-8a04-45d7-a84a-9a9179208596
+[2026-03-19T14:00:53.577Z] DELETE /api/cart 200 5.921 ms | RequestID: d9aa2271-314d-4a7d-bd15-11393c71d207
+[2026-03-19T14:00:53.610Z] POST /api/cart 201 16.900 ms | RequestID: 623cf7bd-f8fe-42bd-a867-7f031fd104b7
+[2026-03-19T14:00:53.633Z] DELETE /api/cart/df3fbf0a-cfbd-48f8-8a10-37f7b5f6bcd8 200 11.923 ms | RequestID: 8d94c3ae-d7e5-4e36-acbf-ee1b2973c904
+PASS tests/cart.operations.test.js
+  Cart Items Operations
+    POST /api/cart
+      √ should add item to cart (93 ms)
+      √ should block adding invalid product (58 ms)
+    PUT /api/cart/:id
+      √ should update item quantity (95 ms)
+      √ should block updating with zero quantity (47 ms)
+    DELETE /api/cart/:id
+      √ should remove item from cart cleanly (76 ms)
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env.test -- tip: 🛡️ auth for agents: https://vestauth.com
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (18) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    Test database schema globally initialized.
+
+      at Object.log (tests/setup.js:33:17)
+
+  console.log
+    [2026-03-19T14:00:54.911Z] [INFO] [EMAIL STUB] To: Tracy30@yahoo.com | Subject: Welcome to HTW Furniture — Please Verify Your Email
+
+      at Object.log [as info] (utils/logger.js:3:17)
+
+[2026-03-19T14:00:54.918Z] POST /api/auth/register 201 399.669 ms | RequestID: e40a50b0-5b79-4109-a962-e9f9e0101adb
+[2026-03-19T14:00:55.358Z] POST /api/auth/login 200 366.005 ms | RequestID: 3375be6a-3a30-4bb4-9acb-844018a823f2
+[2026-03-19T14:00:55.430Z] POST /api/admin/products 201 34.098 ms | RequestID: bb372d94-7cbb-4f4d-a14e-11a528b44d2a
+[2026-03-19T14:00:55.492Z] POST /api/products/27e155ff-87e5-49b3-bcb2-f52612dbc2b0/variants/matrix 201 41.605 ms | RequestID: d733cde3-f3ce-4370-b7c1-2b75b409e6c7
+[2026-03-19T14:00:55.564Z] PUT /api/admin/products/27e155ff-87e5-49b3-bcb2-f52612dbc2b0 200 47.517 ms | RequestID: 753e743a-2b47-4b46-a953-d33bc2ce9689
+[2026-03-19T14:00:55.713Z] GET /api/products/awesome-steel-chips 200 127.441 ms | RequestID: a5d675e1-a5b0-4a75-9bb4-db3c72dc545e
+[2026-03-19T14:00:55.757Z] GET /api/products 200 27.135 ms | RequestID: 7c02da4f-d6a0-42b9-af24-6b72e5f520df
+[2026-03-19T14:00:55.797Z] POST /api/admin/products 201 16.557 ms | RequestID: 812edc59-d6fc-4698-8621-192c01f1ebd9
+[2026-03-19T14:00:55.839Z] POST /api/products/00eb038b-3a8d-4153-bec2-9c258ad92d59/variants/matrix 201 25.524 ms | RequestID: 230b4177-81e2-423c-987c-9e3d37aa90b2
+[2026-03-19T14:00:55.882Z] GET /api/products/sleek-cotton-keyboard 200 28.883 ms | RequestID: 78a0487b-ef08-4810-95f3-98f1899bfbcf
+[2026-03-19T14:00:55.939Z] GET /api/products 200 36.806 ms | RequestID: 5abdf94e-3059-4d58-b618-53c265e52ad3
+PASS tests/variants.test.js
+  Product Variants & Attributes API
+    Variant Life Cycle
+      √ should create a product with variants and attributes (386 ms)
+      √ should show options even if variant is out of stock (178 ms)
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env.test -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (18) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    Test database schema globally initialized.
+
+      at Object.log (tests/setup.js:33:17)
+
+  console.log
+    [2026-03-19T14:00:57.558Z] [INFO] [EMAIL STUB] To: testauth@example.com | Subject: Welcome to HTW Furniture — Please Verify Your Email
+
+      at Object.log [as info] (utils/logger.js:3:17)
+
+[2026-03-19T14:00:57.563Z] POST /api/auth/register 201 432.574 ms | RequestID: 90317f22-62b0-43bc-be55-343f808da3d6
+[2026-03-19T14:00:57.590Z] POST /api/auth/register 409 3.598 ms | RequestID: 8740411f-4c24-468f-9509-4cadad131995
+[2026-03-19T14:00:57.617Z] POST /api/auth/register 400 1.559 ms | RequestID: 0d5d7100-7e65-4364-99b2-15dc5970cfd9
+[2026-03-19T14:00:58.069Z] POST /api/auth/login 200 373.083 ms | RequestID: 61ea41ee-2d15-4faa-b69f-ec4a11e153ae
+[2026-03-19T14:00:58.523Z] POST /api/auth/login 401 435.810 ms | RequestID: e493b435-1aa1-41c7-817e-2271c0cc6ea3
+PASS tests/auth.test.js
+  Auth API Endpoints
+    POST /api/auth/register
+      √ should register a new user successfully (464 ms)
+      √ should fail if email is already registered (26 ms)
+      √ should fail validation with short password (28 ms)
+    POST /api/auth/login
+      √ should login successfully with correct credentials (448 ms)
+      √ should prevent login with wrong password (454 ms)
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env.test -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (18) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    Test database schema globally initialized.
+
+      at Object.log (tests/setup.js:33:17)
+
+  console.log
+    [2026-03-19T14:00:59.998Z] [INFO] [EMAIL STUB] To: orderops@example.com | Subject: Welcome to HTW Furniture — Please Verify Your Email
+
+      at Object.log [as info] (utils/logger.js:3:17)
+
+[2026-03-19T14:01:00.007Z] POST /api/auth/register 201 414.908 ms | RequestID: 0e307cc3-a8c6-4f77-a04c-6b40777ea017
+[2026-03-19T14:01:00.041Z] GET /api/auth/me 200 7.592 ms | RequestID: 4efcb5fa-350e-43ed-a945-f965abd5ff4d
+[2026-03-19T14:01:00.086Z] DELETE /api/cart 200 10.518 ms | RequestID: b6091841-e7d5-414e-b078-67eabc2c670f
+[2026-03-19T14:01:00.178Z] POST /api/orders 400 70.466 ms | RequestID: 4d9fd6a1-bd47-41ab-9746-0d985fc81423
+[2026-03-19T14:01:00.203Z] DELETE /api/cart 200 7.802 ms | RequestID: baefaf46-8595-4ade-8d99-39cec4c2c52c
+[2026-03-19T14:01:00.256Z] POST /api/cart 201 33.609 ms | RequestID: f71c0e75-1748-41e1-be33-30c92c2dae50
+  console.log
+    [2026-03-19T14:01:00.300Z] [INFO] [EMAIL STUB] To: orderops@example.com | Subject: Order #ORD-20260319-0815F4EE Confirmed — HTW Furniture
+
+      at Object.log [as info] (utils/logger.js:3:17)
+
+[2026-03-19T14:01:00.313Z] POST /api/orders 201 35.939 ms | RequestID: a08142bf-5edb-4097-a41f-1fc24092d740
+[2026-03-19T14:01:00.344Z] GET /api/cart 200 12.226 ms | RequestID: 6a2ec59e-a075-4ac2-a852-0954cbc07cf5
+[2026-03-19T14:01:00.368Z] DELETE /api/cart 200 8.623 ms | RequestID: 4bed721c-0d48-4511-a28a-9b6ff93fe34b
+[2026-03-19T14:01:00.402Z] GET /api/orders 200 13.931 ms | RequestID: 3243d649-4584-4957-92a9-147b43ed3fea
+PASS tests/orders.test.js
+  Order Lifecycle API
+    √ should prevent checkout with an empty cart (118 ms)
+    √ should successfully create an order from a populated cart (165 ms)
+    √ should fetch the user order history (60 ms)
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env.test -- tip: ⚙️  write to custom object with { processEnv: myObject }
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (18) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+Terminate batch job (Y/N)? 
+^C

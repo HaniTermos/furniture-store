@@ -109,11 +109,8 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
                                 <div key={i} className="p-6 flex items-start gap-4">
                                     <div className="w-20 h-20 bg-neutral-100 rounded-xl overflow-hidden relative flex-shrink-0">
                                         {item.image ? (
-<<<<<<< HEAD
-                                            <Image src={item.image} alt={item.name} fill className="object-cover" />
-=======
                                             <Image src={item.image} alt={item.name} fill sizes="80px" className="object-cover" />
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                                         ) : (
                                             <Package className="w-6 h-6 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-neutral-300" />
                                         )}

@@ -20,6 +20,7 @@ const Setting = require('../models/Setting');
 const Currency = require('../models/Currency');
 const { jsonToCsv } = require('../utils/exportUtils');
 const emailService = require('../services/emailService');
+const Attribute = require('../models/Attribute');
 
 const adminController = {
     // ═══════════════════════════════════════════════════════════
@@ -34,9 +35,6 @@ const adminController = {
                 pool.query(`SELECT COUNT(*) FROM categories WHERE is_active = true`),
                 Order.getRecentOrders(5),
                 pool.query(`SELECT COUNT(*) FROM reviews WHERE is_approved = false`),
-<<<<<<< HEAD
-                pool.query(`SELECT COUNT(*) FROM configuration_values WHERE stock_quantity > 0 AND stock_quantity < 10`),
-=======
                 pool.query(`
                     SELECT (
                         (SELECT COUNT(*) FROM configuration_values WHERE stock_quantity > 0 AND stock_quantity < 10)
@@ -44,7 +42,6 @@ const adminController = {
                         (SELECT COUNT(*) FROM products WHERE is_configurable = false AND is_active = true AND stock_quantity > 0 AND stock_quantity < low_stock_threshold)
                     ) as count
                 `),
->>>>>>> d1d77d0 (dashboard and variants edits)
             ]);
 
             // Revenue over time (last 30 days)
@@ -137,22 +134,6 @@ const adminController = {
     async getSalesAnalytics(req, res, next) {
         try {
             const { period = '30d' } = req.query;
-<<<<<<< HEAD
-            const intervals = { '7d': '7 days', '30d': '30 days', '90d': '90 days', '1y': '365 days' };
-            const interval = intervals[period] || '30 days';
-
-            const { rows: revenueByDay } = await pool.query(`
-                SELECT DATE(created_at) AS date, SUM(total_amount) AS revenue, COUNT(*) AS orders
-                FROM orders WHERE created_at >= CURRENT_DATE - CAST($1 AS INTERVAL) AND payment_status = 'completed'
-                GROUP BY DATE(created_at) ORDER BY date ASC
-            `, [interval]);
-
-            const { rows: ordersByStatus } = await pool.query(`
-                SELECT status, COUNT(*) as count FROM orders
-                WHERE created_at >= CURRENT_DATE - CAST($1 AS INTERVAL)
-                GROUP BY status
-            `, [interval]);
-=======
             // Whitelist period → integer days (fully parameterized, no string interpolation)
             const VALID_PERIODS = { '7d': 7, '30d': 30, '90d': 90, '1y': 365 };
             const days = VALID_PERIODS[period] || 30;
@@ -168,18 +149,12 @@ const adminController = {
                 WHERE created_at >= CURRENT_DATE - ($1 * INTERVAL '1 day')
                 GROUP BY status
             `, [days]);
->>>>>>> d1d77d0 (dashboard and variants edits)
 
             // Average order value
             const { rows: aov } = await pool.query(`
                 SELECT COALESCE(AVG(total_amount), 0) as aov FROM orders
-<<<<<<< HEAD
-                WHERE created_at >= CURRENT_DATE - CAST($1 AS INTERVAL) AND payment_status = 'completed'
-            `, [interval]);
-=======
                 WHERE created_at >= CURRENT_DATE - ($1 * INTERVAL '1 day') AND payment_status = 'completed'
             `, [days]);
->>>>>>> d1d77d0 (dashboard and variants edits)
 
             res.json({ revenueByDay, ordersByStatus, averageOrderValue: parseFloat(aov[0].aov) });
         } catch (error) {
@@ -278,14 +253,11 @@ const adminController = {
             if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
                 return res.status(400).json({ error: 'Order IDs array required.' });
             }
-<<<<<<< HEAD
-=======
             // Validate all IDs are UUIDs
             const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
             if (!orderIds.every(id => UUID_RE.test(id))) {
                 return res.status(400).json({ error: 'Invalid order ID format.' });
             }
->>>>>>> d1d77d0 (dashboard and variants edits)
             const placeholders = orderIds.map((_, i) => `$${i + 2}`).join(',');
             const { rowCount } = await pool.query(
                 `UPDATE orders SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id IN (${placeholders})`,
@@ -378,11 +350,13 @@ const adminController = {
             const offset = (parseInt(page) - 1) * parseInt(limit);
             let query = `
                 SELECT p.*, c.name as category_name,
-                    (SELECT url FROM product_images WHERE product_id = p.id AND is_primary = true LIMIT 1) as primary_image
+                    (SELECT url FROM product_images WHERE product_id = p.id AND is_primary = true LIMIT 1) as primary_image,
+                    (SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = p.id AND pv.is_active = true) as min_variant_price,
+                    (SELECT MAX(pv.price) FROM product_variants pv WHERE pv.product_id = p.id AND pv.is_active = true) as max_variant_price
                 FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
             `;
-            const conditions = [];
+            const conditions = ['p.is_deleted = false'];
             const params = [];
 
             if (search) {
@@ -409,10 +383,18 @@ const adminController = {
 
             const { rows } = await pool.query(query, params);
 
+            // Attach price_range for products with variants
+            const products = rows.map(p => {
+                if (p.has_variants && p.min_variant_price) {
+                    p.price_range = { min: p.min_variant_price, max: p.max_variant_price || p.min_variant_price };
+                }
+                return p;
+            });
+
             // Count
             let countQuery = `SELECT COUNT(*) FROM products p`;
             const countParams = [];
-            const countConditions = [];
+            const countConditions = ['p.is_deleted = false'];
             if (search) { countParams.push(`%${search}%`); countConditions.push(`(p.name ILIKE $${countParams.length} OR p.sku ILIKE $${countParams.length})`); }
             if (category) { countParams.push(category); countConditions.push(`p.category_id = $${countParams.length}`); }
             if (status === 'active') countConditions.push(`p.is_active = true`);
@@ -421,7 +403,7 @@ const adminController = {
             if (countConditions.length > 0) countQuery += ` WHERE ${countConditions.join(' AND ')}`;
             const { rows: countRows } = await pool.query(countQuery, countParams);
 
-            res.json({ products: rows, total: parseInt(countRows[0].count), page: parseInt(page), limit: parseInt(limit) });
+            res.json({ products, total: parseInt(countRows[0].count), page: parseInt(page), limit: parseInt(limit) });
         } catch (error) {
             next(error);
         }
@@ -460,25 +442,13 @@ const adminController = {
                  WHERE pt.product_id = $1`, [product.id]
             );
 
-<<<<<<< HEAD
-            // Get Global Attributes
-            const { rows: attributes } = await pool.query(
-                `SELECT pa.attribute_id, pa.value_id, pa.is_variation_maker,
-                        a.name as attribute_name, a.type as attribute_type,
-                        av.value as value_name, av.color_hex, av.image_url
-                 FROM product_attributes pa
-                 JOIN attributes a ON a.id = pa.attribute_id
-                 JOIN attribute_values av ON av.id = pa.value_id
-                 WHERE pa.product_id = $1`, [product.id]
-=======
             // Get Assigned Attributes for variants
             const { rows: attributes } = await pool.query(
-                `SELECT pa.attribute_id, a.name as attribute_name, a.type as attribute_type
+                `SELECT pa.attribute_id, pa.attribute_id as id, a.name as attribute_name, a.type as attribute_type
                  FROM product_attributes pa
                  JOIN attributes a ON a.id = pa.attribute_id
                  WHERE pa.product_id = $1
                  ORDER BY pa.sort_order`, [product.id]
->>>>>>> d1d77d0 (dashboard and variants edits)
             );
 
             res.json({ product: { ...product, images, configuration_options: options, tags, attributes } });
@@ -488,60 +458,42 @@ const adminController = {
     },
 
     async createProduct(req, res, next) {
-<<<<<<< HEAD
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
-=======
-        try {
->>>>>>> d1d77d0 (dashboard and variants edits)
             const { generateSlug } = require('../utils/generateSlug');
             const data = req.body;
             if (!data.slug) data.slug = generateSlug(data.name);
 
-<<<<<<< HEAD
             const { rows } = await client.query(
-=======
-            const { rows } = await pool.query(
->>>>>>> d1d77d0 (dashboard and variants edits)
                 `INSERT INTO products (name, slug, sku, description, short_description, base_price, category_id,
-                 is_active, is_configurable, weight_kg, dimensions_cm, is_featured, is_new, meta_title, meta_description, size_guide_id)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *`,
+                 is_active, is_configurable, has_variants, weight_kg, dimensions_cm, is_featured, is_new, meta_title, meta_description, size_guide_id,
+                 stock_quantity, stock_status, low_stock_threshold)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) RETURNING *`,
                 [data.name, data.slug, data.sku, data.description, data.short_description, data.base_price,
-                data.category_id, data.is_active !== false, data.is_configurable || false, data.weight_kg || null,
+                data.category_id, data.is_active !== false, data.is_configurable || false, data.has_variants || false,
+                data.weight_kg || null,
                 data.dimensions_cm ? JSON.stringify(data.dimensions_cm) : null,
                 data.is_featured || false, data.is_new || false, data.meta_title || data.name,
-                data.meta_description || data.short_description, data.size_guide_id || null]
+                data.meta_description || data.short_description, data.size_guide_id || null,
+                data.stock_quantity || 0, data.stock_status || 'in_stock', data.low_stock_threshold || 5]
             );
             const productId = rows[0].id;
 
             // Handle Tags
             if (data.tags && Array.isArray(data.tags)) {
                 for (const tagId of data.tags) {
-<<<<<<< HEAD
                     await client.query(`INSERT INTO product_tags (product_id, tag_id) VALUES ($1, $2)`, [productId, tagId]);
-                }
-            }
-
-            // Handle Global Attributes
-            if (data.attributes && Array.isArray(data.attributes)) {
-                for (const attr of data.attributes) {
-                    await client.query(
-                        `INSERT INTO product_attributes (product_id, attribute_id, value_id, is_variation_maker) VALUES ($1, $2, $3, $4)`,
-                        [productId, attr.attribute_id, attr.value_id, attr.is_variation_maker || false]
-=======
-                    await pool.query(`INSERT INTO product_tags (product_id, tag_id) VALUES ($1, $2)`, [productId, tagId]);
                 }
             }
 
             // Handle Attribute Assignments
             if (data.attributes && Array.isArray(data.attributes)) {
                 for (const attrId of data.attributes) {
-                    await pool.query(
+                    await client.query(
                         `INSERT INTO product_attributes (product_id, attribute_id) VALUES ($1, $2)
                          ON CONFLICT (product_id, attribute_id) DO NOTHING`,
                         [productId, attrId]
->>>>>>> d1d77d0 (dashboard and variants edits)
                     );
                 }
             }
@@ -556,7 +508,6 @@ const adminController = {
                 userAgent: req.headers['user-agent'],
             }).catch(() => { });
 
-<<<<<<< HEAD
             await client.query('COMMIT');
             res.status(201).json({ message: 'Product created.', product: rows[0] });
         } catch (error) {
@@ -564,22 +515,13 @@ const adminController = {
             next(error);
         } finally {
             client.release();
-=======
-            res.status(201).json({ message: 'Product created.', product: rows[0] });
-        } catch (error) {
-            next(error);
->>>>>>> d1d77d0 (dashboard and variants edits)
         }
     },
 
     async updateProduct(req, res, next) {
-<<<<<<< HEAD
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
-=======
-        try {
->>>>>>> d1d77d0 (dashboard and variants edits)
             const data = req.body;
             if (data.name) {
                 const { generateSlug } = require('../utils/generateSlug');
@@ -587,14 +529,9 @@ const adminController = {
             }
 
             const ALLOWED = ['name', 'slug', 'sku', 'description', 'short_description', 'base_price',
-<<<<<<< HEAD
-                'category_id', 'is_active', 'is_configurable', 'weight_kg', 'dimensions_cm',
-                'is_featured', 'is_new', 'meta_title', 'meta_description', 'size_guide_id'];
-=======
                 'category_id', 'is_active', 'is_configurable', 'has_variants', 'weight_kg', 'dimensions_cm',
                 'is_featured', 'is_new', 'meta_title', 'meta_description', 'size_guide_id',
                 'stock_quantity', 'stock_status', 'low_stock_threshold'];
->>>>>>> d1d77d0 (dashboard and variants edits)
             const keys = Object.keys(data).filter(k => ALLOWED.includes(k));
             let productRow = null;
 
@@ -605,7 +542,6 @@ const adminController = {
                     return data[k];
                 });
 
-<<<<<<< HEAD
                 const { rows } = await client.query(
                     `UPDATE products SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *`,
                     [req.params.id, ...values]
@@ -624,34 +560,10 @@ const adminController = {
                 productRow = rows[0];
             }
 
-            // Sync Tags
-            if (data.tags !== undefined) {
-                await client.query(`DELETE FROM product_tags WHERE product_id = $1`, [req.params.id]);
-                if (Array.isArray(data.tags)) {
-                    for (const tagId of data.tags) {
-                        try {
-                            await client.query(`INSERT INTO product_tags (product_id, tag_id) VALUES ($1, $2)`, [req.params.id, tagId]);
-                        } catch (e) {
-                            console.error('Error connecting tag', e);
-                            throw e;
-                        }
-=======
-                const { rows } = await pool.query(
-                    `UPDATE products SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *`,
-                    [req.params.id, ...values]
-                );
-                if (rows.length === 0) return res.status(404).json({ error: 'Product not found.' });
-                productRow = rows[0];
-            } else {
-                const { rows } = await pool.query(`SELECT * FROM products WHERE id = $1`, [req.params.id]);
-                if (rows.length === 0) return res.status(404).json({ error: 'Product not found.' });
-                productRow = rows[0];
-            }
-
             // ── Sync Images ─────────────────────────────────────
             if (data.images !== undefined && Array.isArray(data.images)) {
                 // Get existing image IDs for this product
-                const { rows: existingImages } = await pool.query(
+                const { rows: existingImages } = await client.query(
                     `SELECT id FROM product_images WHERE product_id = $1`, [req.params.id]
                 );
                 const existingIds = new Set(existingImages.map(img => img.id));
@@ -666,7 +578,7 @@ const adminController = {
                 // Delete images that were removed by the user
                 for (const existingId of existingIds) {
                     if (!incomingIds.has(existingId)) {
-                        await pool.query(`DELETE FROM product_images WHERE id = $1`, [existingId]);
+                        await client.query(`DELETE FROM product_images WHERE id = $1`, [existingId]);
                     }
                 }
 
@@ -680,13 +592,13 @@ const adminController = {
 
                     if (img.id && !String(img.id).startsWith('temp-') && existingIds.has(img.id)) {
                         // Update existing image (sort_order, is_primary)
-                        await pool.query(
+                        await client.query(
                             `UPDATE product_images SET url = $1, alt_text = $2, is_primary = $3, sort_order = $4 WHERE id = $5`,
                             [imageUrl, altText, isPrimary, sortOrder, img.id]
                         );
                     } else {
                         // Insert new image (uploaded during this edit session)
-                        await pool.query(
+                        await client.query(
                             `INSERT INTO product_images (product_id, url, alt_text, is_primary, sort_order) VALUES ($1, $2, $3, $4, $5)`,
                             [req.params.id, imageUrl, altText, isPrimary, sortOrder]
                         );
@@ -694,59 +606,34 @@ const adminController = {
                 }
             }
 
-            // ── Sync Tags ───────────────────────────────────────
+            // Sync Tags
             if (data.tags !== undefined) {
-                await pool.query(`DELETE FROM product_tags WHERE product_id = $1`, [req.params.id]);
+                await client.query(`DELETE FROM product_tags WHERE product_id = $1`, [req.params.id]);
                 if (Array.isArray(data.tags)) {
                     for (const tagId of data.tags) {
                         try {
-                            await pool.query(`INSERT INTO product_tags (product_id, tag_id) VALUES ($1, $2)`, [req.params.id, tagId]);
+                            await client.query(`INSERT INTO product_tags (product_id, tag_id) VALUES ($1, $2)`, [req.params.id, tagId]);
                         } catch (e) { console.error('Error connecting tag', e); }
->>>>>>> d1d77d0 (dashboard and variants edits)
                     }
                 }
             }
 
-<<<<<<< HEAD
-            // Sync Global Attributes
+            // Sync Product Attribute Assignments
             if (data.attributes !== undefined) {
                 await client.query(`DELETE FROM product_attributes WHERE product_id = $1`, [req.params.id]);
                 if (Array.isArray(data.attributes)) {
-                    for (const attr of data.attributes) {
-                        try {
-                            await client.query(
-                                `INSERT INTO product_attributes (product_id, attribute_id, value_id, is_variation_maker) VALUES ($1, $2, $3, $4)`,
-                                [req.params.id, attr.attribute_id, attr.value_id, attr.is_variation_maker || false]
-                            );
-                        } catch (e) {
-                            console.error('Error connecting attribute', e);
-                            throw e;
-                        }
-=======
-            // ── Sync Product Attribute Assignments ──────────────────
-            if (data.attributes !== undefined) {
-                await pool.query(`DELETE FROM product_attributes WHERE product_id = $1`, [req.params.id]);
-                if (Array.isArray(data.attributes)) {
                     for (const attrId of data.attributes) {
                         try {
-                            await pool.query(
+                            await client.query(
                                 `INSERT INTO product_attributes (product_id, attribute_id) VALUES ($1, $2)
                                  ON CONFLICT (product_id, attribute_id) DO NOTHING`,
                                 [req.params.id, attrId]
                             );
                         } catch (e) { console.error('Error connecting attribute', e); }
->>>>>>> d1d77d0 (dashboard and variants edits)
                     }
                 }
             }
 
-<<<<<<< HEAD
-            // Sync Product Variation Combinations (configurations)
-            if (data.configurations !== undefined && Array.isArray(data.configurations)) {
-                // 1. Find or create a 'Variations' option for this product
-                let optionId;
-                const { rows: existingOptions } = await client.query(
-=======
             // ── Update Configuration Values (stock/price per variant) ──
             if (data.configuration_values_update !== undefined && Array.isArray(data.configuration_values_update)) {
                 for (const val of data.configuration_values_update) {
@@ -767,7 +654,7 @@ const adminController = {
                     }
                     if (updates.length > 0) {
                         params.push(val.id);
-                        await pool.query(
+                        await client.query(
                             `UPDATE configuration_values SET ${updates.join(', ')} WHERE id = $${params.length}`,
                             params
                         );
@@ -780,7 +667,7 @@ const adminController = {
                 const incoming = data.configuration_options_sync;
 
                 // Get existing options for this product
-                const { rows: existingOptions } = await pool.query(
+                const { rows: existingOptions } = await client.query(
                     `SELECT id FROM configuration_options WHERE product_id = $1`, [req.params.id]
                 );
                 const existingOptionIds = new Set(existingOptions.map(o => o.id));
@@ -789,7 +676,7 @@ const adminController = {
                 // Delete removed options (cascade deletes values automatically)
                 for (const existingId of existingOptionIds) {
                     if (!incomingOptionIds.has(existingId)) {
-                        await pool.query(`DELETE FROM configuration_options WHERE id = $1`, [existingId]);
+                        await client.query(`DELETE FROM configuration_options WHERE id = $1`, [existingId]);
                     }
                 }
 
@@ -800,13 +687,13 @@ const adminController = {
 
                     if (opt.id && existingOptionIds.has(opt.id)) {
                         // Update existing option
-                        await pool.query(
+                        await client.query(
                             `UPDATE configuration_options SET name = $1, type = $2, sort_order = $3 WHERE id = $4`,
                             [opt.name, opt.type || 'select', i, opt.id]
                         );
                     } else {
                         // Insert new option
-                        const { rows: newOpt } = await pool.query(
+                        const { rows: newOpt } = await client.query(
                             `INSERT INTO configuration_options (product_id, name, type, is_required, sort_order)
                              VALUES ($1, $2, $3, true, $4) RETURNING id`,
                             [req.params.id, opt.name, opt.type || 'select', i]
@@ -815,7 +702,7 @@ const adminController = {
                     }
 
                     // Sync values for this option
-                    const { rows: existingValues } = await pool.query(
+                    const { rows: existingValues } = await client.query(
                         `SELECT id FROM configuration_values WHERE option_id = $1`, [optionId]
                     );
                     const existingValueIds = new Set(existingValues.map(v => v.id));
@@ -824,7 +711,7 @@ const adminController = {
                     // Delete removed values
                     for (const existingValId of existingValueIds) {
                         if (!incomingValueIds.has(existingValId)) {
-                            await pool.query(`DELETE FROM configuration_values WHERE id = $1`, [existingValId]);
+                            await client.query(`DELETE FROM configuration_values WHERE id = $1`, [existingValId]);
                         }
                     }
 
@@ -835,13 +722,13 @@ const adminController = {
 
                         if (val.id && existingValueIds.has(val.id)) {
                             // Update existing value
-                            await pool.query(
+                            await client.query(
                                 `UPDATE configuration_values SET value = $1, price_adjustment = $2, stock_quantity = $3, stock_status = $4, image_url = $5 WHERE id = $6`,
                                 [val.value, parseFloat(val.price_adjustment) || 0, qty, stockStatus, val.image_url || null, val.id]
                             );
                         } else {
                             // Insert new value
-                            await pool.query(
+                            await client.query(
                                 `INSERT INTO configuration_values (option_id, value, price_adjustment, stock_quantity, stock_status, image_url)
                                  VALUES ($1, $2, $3, $4, $5, $6)`,
                                 [optionId, val.value, parseFloat(val.price_adjustment) || 0, qty, stockStatus, val.image_url || null]
@@ -851,60 +738,10 @@ const adminController = {
                 }
 
                 // Auto-set is_configurable based on whether options exist
-                await pool.query(
+                await client.query(
                     `UPDATE products SET is_configurable = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
                     [incoming.length > 0, req.params.id]
                 );
-            }
-
-            // ── Sync Product Variation Combinations (configurations) ──
-            if (data.configurations !== undefined && Array.isArray(data.configurations)) {
-                let optionId;
-                const { rows: existingOptions } = await pool.query(
->>>>>>> d1d77d0 (dashboard and variants edits)
-                    `SELECT id FROM configuration_options WHERE product_id = $1 AND name = 'Variations'`,
-                    [req.params.id]
-                );
-
-                if (existingOptions.length > 0) {
-                    optionId = existingOptions[0].id;
-                } else {
-<<<<<<< HEAD
-                    const { rows: newOption } = await client.query(
-=======
-                    const { rows: newOption } = await pool.query(
->>>>>>> d1d77d0 (dashboard and variants edits)
-                        `INSERT INTO configuration_options (product_id, name, type, is_required, sort_order)
-                         VALUES ($1, 'Variations', 'select', true, 0) RETURNING id`,
-                        [req.params.id]
-                    );
-                    optionId = newOption[0].id;
-                }
-
-<<<<<<< HEAD
-                // 2. Clear old values for this specific 'Variations' option
-                await client.query(`DELETE FROM configuration_values WHERE option_id = $1`, [optionId]);
-
-                // 3. Insert new values
-                for (const config of data.configurations) {
-                    await client.query(
-=======
-                await pool.query(`DELETE FROM configuration_values WHERE option_id = $1`, [optionId]);
-
-                for (const config of data.configurations) {
-                    await pool.query(
->>>>>>> d1d77d0 (dashboard and variants edits)
-                        `INSERT INTO configuration_values (option_id, value, price_adjustment, stock_quantity, stock_status)
-                         VALUES ($1, $2, $3, $4, $5)`,
-                        [
-                            optionId,
-                            config.value,
-                            parseFloat(config.price_adjustment) || 0,
-                            parseInt(config.stock_quantity) || 0,
-                            config.stock_status || 'in_stock'
-                        ]
-                    );
-                }
             }
 
             ActivityLog.create({
@@ -917,64 +754,51 @@ const adminController = {
                 userAgent: req.headers['user-agent'],
             }).catch(() => { });
 
-<<<<<<< HEAD
             await client.query('COMMIT');
-            res.json({ message: 'Product updated.', product: productRow });
-        } catch (error) {
-            await client.query('ROLLBACK');
-            next(error);
-        } finally {
-            client.release();
-=======
+            
             // ── Return full product (matching getProductDetail shape) ──
-            const { rows: fullProducts } = await pool.query(
+            const { rows: fullProducts } = await client.query(
                 `SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = $1`,
                 [req.params.id]
             );
             const fullProduct = fullProducts[0];
 
-            const { rows: finalImages } = await pool.query(
+            const { rows: finalImages } = await client.query(
                 `SELECT * FROM product_images WHERE product_id = $1 ORDER BY sort_order`, [req.params.id]
             );
 
-            const { rows: finalOptions } = await pool.query(
+            const { rows: finalOptions } = await client.query(
                 `SELECT * FROM configuration_options WHERE product_id = $1 ORDER BY sort_order`, [req.params.id]
             );
             for (const opt of finalOptions) {
-                const { rows: vals } = await pool.query(
+                const { rows: vals } = await client.query(
                     `SELECT * FROM configuration_values WHERE option_id = $1 ORDER BY value`, [opt.id]
                 );
                 opt.values = vals;
             }
 
-            const { rows: finalTags } = await pool.query(
+            const { rows: finalTags } = await client.query(
                 `SELECT t.* FROM tags t JOIN product_tags pt ON pt.tag_id = t.id WHERE pt.product_id = $1`, [req.params.id]
             );
 
-            const { rows: finalAttrs } = await pool.query(
-                `SELECT pa.attribute_id, pa.value_id,
-                        a.name as attribute_name, a.type as attribute_type,
-                        av.value as value_name, av.color_hex, av.image_url
-                 FROM product_attributes pa
-                 JOIN attributes a ON a.id = pa.attribute_id
-                 JOIN attribute_values av ON av.id = pa.value_id
-                 WHERE pa.product_id = $1`, [req.params.id]
-            );
+            const finalAttrs = await Attribute.getProductAttributes(req.params.id);
 
             res.json({
                 message: 'Product updated.',
                 product: { ...fullProduct, images: finalImages, configuration_options: finalOptions, tags: finalTags, attributes: finalAttrs }
             });
         } catch (error) {
+            await client.query('ROLLBACK');
             next(error);
->>>>>>> d1d77d0 (dashboard and variants edits)
+        } finally {
+            client.release();
         }
     },
 
     async deleteProduct(req, res, next) {
         try {
             const { rows } = await pool.query(
-                `UPDATE products SET is_active = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING id, name`,
+                `UPDATE products SET is_active = false, is_deleted = true, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING id, name`,
                 [req.params.id]
             );
             if (rows.length === 0) return res.status(404).json({ error: 'Product not found.' });
@@ -1022,9 +846,6 @@ const adminController = {
     async bulkDeleteProducts(req, res, next) {
         try {
             const { productIds } = req.body;
-<<<<<<< HEAD
-            if (!productIds || !Array.isArray(productIds)) return res.status(400).json({ error: 'Product IDs required.' });
-=======
             if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
                 return res.status(400).json({ error: 'Product IDs required.' });
             }
@@ -1033,10 +854,9 @@ const adminController = {
             if (!productIds.every(id => UUID_RE.test(id))) {
                 return res.status(400).json({ error: 'Invalid product ID format.' });
             }
->>>>>>> d1d77d0 (dashboard and variants edits)
             const placeholders = productIds.map((_, i) => `$${i + 1}`).join(',');
             const { rowCount } = await pool.query(
-                `UPDATE products SET is_active = false, updated_at = CURRENT_TIMESTAMP WHERE id IN (${placeholders})`,
+                `UPDATE products SET is_active = false, is_deleted = true, updated_at = CURRENT_TIMESTAMP WHERE id IN (${placeholders})`,
                 productIds
             );
             res.json({ message: `${rowCount} products deactivated.` });
@@ -1048,19 +868,6 @@ const adminController = {
     async bulkUpdateProductStatus(req, res, next) {
         try {
             const { productIds, is_active, is_featured } = req.body;
-<<<<<<< HEAD
-            if (!productIds || !Array.isArray(productIds)) return res.status(400).json({ error: 'Product IDs required.' });
-            const updates = [];
-            const params = [...productIds];
-            if (is_active !== undefined) updates.push(`is_active = ${is_active}`);
-            if (is_featured !== undefined) updates.push(`is_featured = ${is_featured}`);
-            if (updates.length === 0) return res.status(400).json({ error: 'No updates specified.' });
-
-            const placeholders = productIds.map((_, i) => `$${i + 1}`).join(',');
-            const { rowCount } = await pool.query(
-                `UPDATE products SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id IN (${placeholders})`,
-                params
-=======
             if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
                 return res.status(400).json({ error: 'Product IDs required.' });
             }
@@ -1086,7 +893,6 @@ const adminController = {
             const { rowCount } = await pool.query(
                 `UPDATE products SET ${setClauses.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id IN (${idPlaceholders})`,
                 [...params, ...productIds]
->>>>>>> d1d77d0 (dashboard and variants edits)
             );
             res.json({ message: `${rowCount} products updated.` });
         } catch (error) {
@@ -1404,30 +1210,18 @@ const adminController = {
     async getLowStock(req, res, next) {
         try {
             const threshold = parseInt(req.query.threshold) || 10;
-<<<<<<< HEAD
-            const { rows } = await pool.query(`
-                SELECT cv.id, cv.value, cv.stock_quantity, cv.stock_status,
-                       co.name as option_name, co.type as option_type,
-                       p.name as product_name, p.sku as product_sku, p.id as product_id
-=======
-
             // Configurable products: low stock on configuration_values
             const { rows: configRows } = await pool.query(`
                 SELECT cv.id, cv.value, cv.stock_quantity, cv.stock_status,
                        co.name as option_name, co.type as option_type,
                        p.name as product_name, p.sku as product_sku, p.id as product_id,
                        'configuration' as stock_type
->>>>>>> d1d77d0 (dashboard and variants edits)
                 FROM configuration_values cv
                 JOIN configuration_options co ON cv.option_id = co.id
                 JOIN products p ON co.product_id = p.id
                 WHERE cv.stock_quantity > 0 AND cv.stock_quantity <= $1
                 ORDER BY cv.stock_quantity ASC
             `, [threshold]);
-<<<<<<< HEAD
-            res.json({ lowStock: rows, total: rows.length });
-=======
-
             // Non-configurable products: low stock on products table
             const { rows: simpleRows } = await pool.query(`
                 SELECT p.id, p.name as value, p.stock_quantity, p.stock_status,
@@ -1444,7 +1238,6 @@ const adminController = {
 
             const allLowStock = [...configRows, ...simpleRows].sort((a, b) => a.stock_quantity - b.stock_quantity);
             res.json({ lowStock: allLowStock, total: allLowStock.length });
->>>>>>> d1d77d0 (dashboard and variants edits)
         } catch (error) {
             next(error);
         }
@@ -1760,33 +1553,6 @@ const adminController = {
     async exportData(req, res, next) {
         try {
             const { type } = req.params;
-<<<<<<< HEAD
-            let data = [];
-            let fields = [];
-            let filename = '';
-
-            switch (type) {
-                case 'products':
-                    const { rows: products } = await pool.query('SELECT * FROM products ORDER BY created_at DESC');
-                    data = products;
-                    fields = ['id', 'sku', 'name', 'price', 'stock_quantity', 'is_active', 'is_featured', 'created_at'];
-                    filename = 'products_export.csv';
-                    break;
-                case 'orders':
-                    const { rows: orders } = await pool.query('SELECT * FROM orders ORDER BY created_at DESC');
-                    data = orders;
-                    fields = ['id', 'order_number', 'total_amount', 'status', 'payment_status', 'shipping_address', 'created_at'];
-                    filename = 'orders_export.csv';
-                    break;
-                case 'customers':
-                    const { rows: customers } = await pool.query("SELECT id, email, name, phone, role, is_active, created_at FROM users WHERE role = 'user' ORDER BY created_at DESC");
-                    data = customers;
-                    fields = ['id', 'email', 'name', 'phone', 'is_active', 'created_at'];
-                    filename = 'customers_export.csv';
-                    break;
-                default:
-                    return res.status(400).json({ error: 'Invalid export type.' });
-=======
             // Whitelist export types
             const VALID_TYPES = ['products', 'orders', 'customers'];
             if (!VALID_TYPES.includes(type)) {
@@ -1828,7 +1594,6 @@ const adminController = {
                     filename = 'customers_export.csv';
                     break;
                 }
->>>>>>> d1d77d0 (dashboard and variants edits)
             }
 
             const csv = jsonToCsv(data, fields);
@@ -1840,11 +1605,7 @@ const adminController = {
             }).catch(() => { });
 
             res.setHeader('Content-Type', 'text/csv');
-<<<<<<< HEAD
-            res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
-=======
             res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
->>>>>>> d1d77d0 (dashboard and variants edits)
             res.status(200).send(csv);
         } catch (error) {
             next(error);

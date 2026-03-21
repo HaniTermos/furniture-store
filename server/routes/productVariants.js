@@ -2,6 +2,13 @@ const express = require('express');
 const router = express.Router({ mergeParams: true });
 const { auth, adminOnly } = require('../middleware/auth');
 const ProductVariant = require('../models/ProductVariant');
+const productController = require('../controllers/productController');
+const upload = require('../middleware/upload');
+
+const { validateId } = require('../middleware/validateId');
+
+// Validate productId param — reject "undefined" or non-UUID values early
+router.use(validateId(['productId']));
 
 // GET /api/products/:productId/variants - List variants for a product
 router.get('/', async (req, res, next) => {
@@ -100,6 +107,9 @@ router.put('/:id', auth, adminOnly, async (req, res, next) => {
         next(err);
     }
 });
+
+// POST /api/products/:productId/variants/:id/image - Upload variant image (admin only)
+router.post('/:id/image', auth, adminOnly, upload.single('image'), productController.uploadVariantImage);
 
 // DELETE /api/products/:productId/variants/:id - Delete variant (admin only)
 router.delete('/:id', auth, adminOnly, async (req, res, next) => {

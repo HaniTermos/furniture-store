@@ -270,30 +270,31 @@ export default function AdminMessagesPage() {
                                     </div>
                                 )}
 
-                                {!selectedMessage.admin_reply && (
-                                    <div className="p-8 bg-white border-2 border-dashed border-neutral-100 rounded-[32px] space-y-6">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <div className="p-2 bg-primary-orange/10 rounded-lg text-primary-orange"><Reply className="w-4 h-4" /></div>
-                                            <h4 className="font-black text-neutral-900 uppercase text-xs tracking-widest">Compose Response</h4>
-                                        </div>
-                                        <textarea
-                                            value={replyText}
-                                            onChange={(e) => setReplyText(e.target.value)}
-                                            placeholder="Type your reply to the customer..."
-                                            className="w-full p-6 bg-neutral-50 border border-neutral-100 rounded-2xl outline-none focus:ring-4 focus:ring-primary-orange/5 focus:border-primary-orange/20 transition-all font-medium text-neutral-700 min-h-[200px] resize-none"
-                                        />
-                                        <button
-                                            onClick={() => replyMutation.mutate({ id: selectedMessage.id, reply: replyText })}
-                                            disabled={!replyText || replyMutation.isPending}
-                                            className="flex items-center gap-2 px-8 py-4 bg-primary-orange text-white rounded-2xl text-sm font-black hover:bg-orange-600 disabled:opacity-50 transition-all shadow-lg shadow-primary-orange/20 ml-auto"
-                                        >
-                                            {replyMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Send Reply
-                                        </button>
-                                        <p className="text-[10px] font-bold text-neutral-400 text-center uppercase tracking-widest">
-                                            Replies will be stored and marked as sent in-app
-                                        </p>
+                                {/* Always show reply composer */}
+                                <div className="p-8 bg-white border-2 border-dashed border-neutral-100 rounded-[32px] space-y-6">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="p-2 bg-primary-orange/10 rounded-lg text-primary-orange"><Reply className="w-4 h-4" /></div>
+                                        <h4 className="font-black text-neutral-900 uppercase text-xs tracking-widest">
+                                            {selectedMessage.admin_reply ? 'Send Follow-up Reply' : 'Compose Response'}
+                                        </h4>
                                     </div>
-                                )}
+                                    <textarea
+                                        value={replyText}
+                                        onChange={(e) => setReplyText(e.target.value)}
+                                        placeholder={selectedMessage.admin_reply ? "Write a follow-up reply..." : "Type your reply to the customer..."}
+                                        className="w-full p-6 bg-neutral-50 border border-neutral-100 rounded-2xl outline-none focus:ring-4 focus:ring-primary-orange/5 focus:border-primary-orange/20 transition-all font-medium text-neutral-700 min-h-[200px] resize-none"
+                                    />
+                                    <button
+                                        onClick={() => replyMutation.mutate({ id: selectedMessage.id, reply: replyText })}
+                                        disabled={!replyText || replyMutation.isPending}
+                                        className="flex items-center gap-2 px-8 py-4 bg-primary-orange text-white rounded-2xl text-sm font-black hover:bg-orange-600 disabled:opacity-50 transition-all shadow-lg shadow-primary-orange/20 ml-auto"
+                                    >
+                                        {replyMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Send Reply
+                                    </button>
+                                    <p className="text-[10px] font-bold text-neutral-400 text-center uppercase tracking-widest">
+                                        Replies will be stored and marked as sent in-app
+                                    </p>
+                                </div>
                             </div>
                         </>
                     )}

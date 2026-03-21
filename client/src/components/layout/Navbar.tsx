@@ -45,11 +45,8 @@ export default function Navbar() {
                 initial={{ y: -100 }}
                 animate={{ y: 0 }}
                 transition={{ duration: 0.6, ease: [0.19, 1, 0.22, 1] }}
-<<<<<<< HEAD
-                className={`fixed top-0 left-0 right-0 z-[var(--z-fixed)] transition-all duration-500 ${scrolled
-=======
                 className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                     ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-neutral-100'
                     : 'bg-transparent'
                     }`}
@@ -63,10 +60,8 @@ export default function Navbar() {
                                     src="/images/logo.png"
                                     alt="High Tech Wood"
                                     fill
-<<<<<<< HEAD
-=======
                                     sizes="(max-width: 768px) 40px, 48px"
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                                     className="object-contain"
                                     priority
                                 />

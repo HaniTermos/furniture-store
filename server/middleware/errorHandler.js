@@ -56,12 +56,6 @@ const errorHandler = (err, req, res, next) => {
 
     // ─── Default error ────────────────────────────────────────
     const statusCode = err.statusCode || err.status || 500;
-<<<<<<< HEAD
-    if (statusCode === 500) {
-        console.error('INTERNAL SERVER ERROR DETAILS:', err);
-    }
-=======
->>>>>>> d1d77d0 (dashboard and variants edits)
     res.status(statusCode).json({
         error: process.env.NODE_ENV === 'production'
             ? 'An unexpected error occurred.'

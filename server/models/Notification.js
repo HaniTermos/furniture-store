@@ -40,8 +40,8 @@ const Notification = {
         return rowCount;
     },
 
-    async create({ userId, type, title, message, link }) {
-        const { rows } = await pool.query(
+    async create({ userId, type, title, message, link }, dbClient = pool) {
+        const { rows } = await dbClient.query(
             `INSERT INTO notifications (user_id, type, title, message, link)
              VALUES ($1, $2, $3, $4, $5) RETURNING *`,
             [userId, type, title, message, link]

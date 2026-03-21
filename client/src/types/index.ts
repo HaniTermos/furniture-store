@@ -33,8 +33,6 @@ export interface ProductDetails {
     care: string;
 }
 
-<<<<<<< HEAD
-=======
 // ===== Variant System Types =====
 export interface VariantAttribute {
     attribute_id: string;
@@ -91,7 +89,6 @@ export interface ConfigOption {
     values: ConfigOptionValue[];
 }
 
->>>>>>> d1d77d0 (dashboard and variants edits)
 export interface Product {
     id: string;
     slug: string;
@@ -99,13 +96,9 @@ export interface Product {
     description: string;
     shortDescription: string;
     price: number;
-<<<<<<< HEAD
-    originalPrice?: number;
-=======
     base_price?: number;
     originalPrice?: number;
     original_price?: number;
->>>>>>> d1d77d0 (dashboard and variants edits)
     images: ProductImage[];
     colors: ProductColor[];
     sizes: ProductSize[];
@@ -116,18 +109,13 @@ export interface Product {
     category_id?: string;
     available: number;
     totalStock: number;
-<<<<<<< HEAD
-=======
     stock_quantity?: number;
->>>>>>> d1d77d0 (dashboard and variants edits)
     rating: number;
     reviewCount: number;
     tags: string[];
     isNew?: boolean;
     isFeatured?: boolean;
     createdAt: string;
-<<<<<<< HEAD
-=======
     has_variants?: boolean;
     price_range?: { min: number; max: number };
     display_price?: string | number;
@@ -136,7 +124,6 @@ export interface Product {
     attributes?: ProductAttribute[];
     // Legacy configuration options from admin dashboard
     configuration_options?: ConfigOption[];
->>>>>>> d1d77d0 (dashboard and variants edits)
 }
 
 // ===== Cart Types =====
@@ -146,10 +133,7 @@ export interface CartItem {
     quantity: number;
     selectedColor?: ProductColor;
     selectedSize?: ProductSize;
-<<<<<<< HEAD
-=======
     variant?: ProductVariant;
->>>>>>> d1d77d0 (dashboard and variants edits)
 }
 
 // ===== Order Types =====
@@ -202,11 +186,24 @@ export interface User {
     createdAt: string;
 }
 
-// ===== Currency Types =====
+export interface Currency {
+    id: string;
+    code: string;
+    name: string;
+    symbol: string;
+    exchange_rate: number;
+    is_base: boolean;
+    is_active: boolean;
+    decimal_places: number;
+    symbol_position: 'before' | 'after';
+}
+
 export interface CurrencyConfig {
-    usdToLbpRate: number;
+    usdToLbpRate: number; // For backward compatibility if needed, but we'll use activeCurrencies
     taxRate: number;
     shippingRates: ShippingRate[];
+    activeCurrencies: Currency[];
+    baseCurrencyCode: string;
 }
 
 export interface ShippingRate {

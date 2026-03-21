@@ -23,11 +23,7 @@ const cartController = {
     async addItem(req, res, next) {
         const client = await pool.connect();
         try {
-<<<<<<< HEAD
-            const { product_id, quantity = 1, configuration } = req.body;
-=======
             const { product_id, variant_id, quantity = 1, configuration } = req.body;
->>>>>>> d1d77d0 (dashboard and variants edits)
 
             await client.query('BEGIN'); // Start transaction
 
@@ -38,10 +34,6 @@ const cartController = {
                 return res.status(404).json({ error: 'Product not found.' });
             }
 
-<<<<<<< HEAD
-            // Calculate unit price with configuration
-            const { totalPrice } = await priceService.calculatePrice(product.base_price, configuration);
-=======
             // Calculate unit price with configuration if no variant is provided
             let totalPrice;
             if (variant_id) {
@@ -52,15 +44,11 @@ const cartController = {
                 const priceResult = await priceService.calculatePrice(product.base_price, configuration);
                 totalPrice = priceResult.totalPrice;
             }
->>>>>>> d1d77d0 (dashboard and variants edits)
 
             const item = await CartItem.add({
                 user_id: req.user.id,
                 product_id,
-<<<<<<< HEAD
-=======
                 variant_id,
->>>>>>> d1d77d0 (dashboard and variants edits)
                 quantity,
                 configuration,
                 unit_price: totalPrice,
@@ -127,12 +115,67 @@ const cartController = {
     /**
      * DELETE /api/cart
      */
+    /**
+     * DELETE /api/cart
+     */
     async clearCart(req, res, next) {
         try {
             await CartItem.clearCart(req.user.id);
             res.json({ message: 'Cart cleared.', items: [], total: 0, item_count: 0 });
         } catch (error) {
             next(error);
+        }
+    },
+
+    /**
+     * POST /api/cart/sync
+     */
+    async syncCart(req, res, next) {
+        const client = await pool.connect();
+        try {
+            const { items } = req.body;
+            if (!Array.isArray(items)) {
+                return res.status(400).json({ error: 'Items must be an array.' });
+            }
+
+            await client.query('BEGIN');
+
+            // Clear existing cart for user
+            await CartItem.clearCart(req.user.id, client);
+
+            // Add all items from the request
+            for (const item of items) {
+                // Determine price
+                let unitPrice = 0;
+                if (!item.variant_id) {
+                    const product = await Product.findById(item.product_id);
+                    if (product) {
+                        const priceResult = await priceService.calculatePrice(product.base_price, item.configuration);
+                        unitPrice = priceResult.totalPrice;
+                    }
+                }
+
+                await CartItem.add({
+                    user_id: req.user.id,
+                    product_id: item.product_id,
+                    variant_id: item.variant_id,
+                    quantity: item.quantity,
+                    configuration: item.configuration,
+                    unit_price: unitPrice,
+                }, client);
+            }
+
+            await client.query('COMMIT');
+
+            const updatedItems = await CartItem.findByUser(req.user.id);
+            const totals = await CartItem.getCartTotal(req.user.id);
+
+            res.json({ message: 'Cart synced.', items: updatedItems, ...totals });
+        } catch (error) {
+            await client.query('ROLLBACK');
+            next(error);
+        } finally {
+            client.release();
         }
     },
 };

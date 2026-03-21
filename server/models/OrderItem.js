@@ -7,19 +7,12 @@ const OrderItem = {
         for (const item of items) {
             const { rows } = await db.query(
                 `INSERT INTO order_items
-<<<<<<< HEAD
-    (order_id, product_id, quantity, unit_price, total_price,
-        configuration, product_name, product_sku)
-VALUES($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING * `,
-                [order_id, item.product_id,
-=======
     (order_id, product_id, variant_id, quantity, unit_price, total_price,
         configuration, product_name, product_sku)
 VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING * `,
                 [order_id, item.product_id, item.variant_id || null,
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                     item.quantity, item.unit_price, item.quantity * item.unit_price,
                     item.configuration ? JSON.stringify(item.configuration) : null,
                     item.product_name, item.product_sku]

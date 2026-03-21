@@ -7,11 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     name VARCHAR(255),
     phone VARCHAR(50),
-<<<<<<< HEAD
-    role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('admin', 'manager', 'user')),
-=======
     role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('super_admin', 'admin', 'manager', 'user')),
->>>>>>> d1d77d0 (dashboard and variants edits)
     avatar_url TEXT,
     is_active BOOLEAN DEFAULT true,
     email_verified BOOLEAN DEFAULT false,
@@ -26,10 +22,7 @@ CREATE TABLE IF NOT EXISTS users (
     two_factor_enabled BOOLEAN DEFAULT false,
     preferences JSONB DEFAULT '{}'::jsonb,
     google_id VARCHAR(255),
-<<<<<<< HEAD
-=======
     password_changed_at TIMESTAMP,
->>>>>>> d1d77d0 (dashboard and variants edits)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -88,16 +81,12 @@ CREATE TABLE IF NOT EXISTS configuration_options (
             'material',
             'size',
             'design',
-<<<<<<< HEAD
-            'accessory'
-=======
             'accessory',
             'select',
             'radio',
             'button',
             'text',
             'image'
->>>>>>> d1d77d0 (dashboard and variants edits)
         )
     ),
     is_required BOOLEAN DEFAULT true,
@@ -235,11 +224,7 @@ CREATE TABLE IF NOT EXISTS invitations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
     name VARCHAR(255),
-<<<<<<< HEAD
-    role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('admin', 'manager', 'user')),
-=======
     role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('super_admin', 'admin', 'manager', 'user')),
->>>>>>> d1d77d0 (dashboard and variants edits)
     token VARCHAR(255) UNIQUE NOT NULL,
     expires_at TIMESTAMP NOT NULL,
     is_used BOOLEAN DEFAULT false,

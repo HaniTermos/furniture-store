@@ -10,10 +10,8 @@ const { productSchema, productUpdateSchema } = require('../validation/productSch
 // Public routes
 router.get('/', productController.getAll);
 router.get('/featured', productController.getFeatured);
-<<<<<<< HEAD
-=======
 router.get('/filters', productController.getFilters);
->>>>>>> d1d77d0 (dashboard and variants edits)
+
 router.get('/:idOrSlug', productController.getOne);
 
 // Admin routes

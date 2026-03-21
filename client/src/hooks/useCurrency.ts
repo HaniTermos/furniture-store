@@ -18,41 +18,69 @@ export function formatLbp(amount: number): string {
 
 export function useCurrency() {
     const { currencyConfig, showLbp, toggleCurrency } = useAppStore();
+    const { usdToLbpRate, taxRate, shippingRates } = currencyConfig;
 
-    const convertToLbp = (usd: number) => usd * currencyConfig.usdToLbpRate;
+    const formatPrice = (priceInUsd: number) => {
+        // Safety check for usdToLbpRate
+        const effectiveUsdToLbpRate = usdToLbpRate && usdToLbpRate > 0 ? usdToLbpRate : 15000; // Default or fallback rate
+        const lbpPrice = priceInUsd * effectiveUsdToLbpRate;
 
-    const formatPrice = (usdAmount: number) => ({
-        usd: formatUsd(usdAmount),
-        lbp: formatLbp(convertToLbp(usdAmount)),
-        display: showLbp ? formatLbp(convertToLbp(usdAmount)) : formatUsd(usdAmount),
-    });
+        const usdFormatted = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+        }).format(priceInUsd);
 
-    const calculateTax = (subtotal: number) => subtotal * currencyConfig.taxRate;
+        const lbpFormatted = new Intl.NumberFormat('en-LB', {
+            style: 'currency',
+            currency: 'LBP',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(lbpPrice);
 
-    const calculateShipping = (subtotal: number, region = 'Lebanon') => {
-        const rate = currencyConfig.shippingRates.find((r) => r.region === region);
-        if (!rate) return 0;
-        if (rate.freeShippingThreshold && subtotal >= rate.freeShippingThreshold) return 0;
-        return rate.rate;
+        return {
+            usd: usdFormatted,
+            lbp: lbpFormatted,
+            display: showLbp ? lbpFormatted : usdFormatted,
+        };
     };
 
-    const calculateTotal = (subtotal: number, region = 'Lebanon') => {
-        const tax = calculateTax(subtotal);
-        const shipping = calculateShipping(subtotal, region);
-        const totalUsd = subtotal + tax + shipping;
+    const calculateTotal = (subtotalUsd: number, discountUsd: number = 0) => {
+        // Safety check for taxRate
+        const effectiveTaxRate = taxRate && taxRate >= 0 ? taxRate : 0;
+        const taxUsd = subtotalUsd * effectiveTaxRate;
+        
+        // Dynamic shipping rate check
+        const applicableRate = shippingRates.find(r => 
+            subtotalUsd >= (r.minOrderValue || 0) && 
+            (r.freeShippingThreshold === undefined || subtotalUsd < r.freeShippingThreshold)
+        );
+        
+        const shippingUsd = applicableRate ? applicableRate.rate : 0;
+        const totalUsd = Math.max(0, subtotalUsd + taxUsd + shippingUsd - discountUsd);
+
         return {
-            subtotalUsd: subtotal,
-            taxUsd: tax,
-            shippingUsd: shipping,
+            subtotalUsd,
+            taxUsd,
+            shippingUsd,
+            discountUsd,
             totalUsd,
-            totalLbp: convertToLbp(totalUsd),
             formatted: {
-                subtotal: formatPrice(subtotal),
-                tax: formatPrice(tax),
-                shipping: formatPrice(shipping),
+                subtotal: formatPrice(subtotalUsd),
+                tax: formatPrice(taxUsd),
+                shipping: formatPrice(shippingUsd),
+                discount: formatPrice(discountUsd),
                 total: formatPrice(totalUsd),
             },
         };
+    };
+
+    const convertToLbp = (usd: number) => usd * (usdToLbpRate || 90000);
+    const calculateTax = (subtotal: number) => subtotal * (taxRate || 0);
+    const calculateShipping = (subtotal: number, region = 'Lebanon') => {
+        const rate = shippingRates.find((r) => r.region === region);
+        if (!rate) return 0;
+        if (rate.freeShippingThreshold && subtotal >= rate.freeShippingThreshold) return 0;
+        return rate.rate;
     };
 
     return {

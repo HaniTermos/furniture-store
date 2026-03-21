@@ -18,7 +18,7 @@ beforeAll(async () => {
     // Only run schema init ONCE per test process (important for --runInBand)
     if (global.__SCHEMA_INITIALIZED__) {
         // Still truncate to ensure clean state for this suite
-        await pool.query('TRUNCATE users, categories, products, orders, cart_items RESTART IDENTITY CASCADE');
+        await pool.query('TRUNCATE users, categories, products, orders, cart_items, attributes, attribute_options, product_variants, variant_attributes, product_attributes RESTART IDENTITY CASCADE');
         return;
     }
 
@@ -28,7 +28,7 @@ beforeAll(async () => {
     try {
         await pool.query(schemaSql);
         // Ensure clean start for first suite
-        await pool.query('TRUNCATE users, categories, products, orders, cart_items RESTART IDENTITY CASCADE');
+        await pool.query('TRUNCATE users, categories, products, orders, cart_items, attributes, attribute_options, product_variants, variant_attributes, product_attributes RESTART IDENTITY CASCADE');
         global.__SCHEMA_INITIALIZED__ = true;
         console.log('Test database schema globally initialized.');
     } catch (error) {

@@ -4,11 +4,7 @@ import { useAppStore } from '@/store';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // Transform backend product to frontend shape
-<<<<<<< HEAD
-export function transformProduct(p: any): Product {
-=======
 export function transformProduct(p: any): Product & { rawConfigOptions: any[] } {
->>>>>>> d1d77d0 (dashboard and variants edits)
     // Try to parse configure data if included, otherwise provide sensible defaults
     const images = (p.images || []).map((img: any) => ({
         id: img.id,
@@ -20,24 +16,6 @@ export function transformProduct(p: any): Product & { rawConfigOptions: any[] } 
         images.push({ id: 'primary', url: p.primary_image, alt: p.name });
     }
 
-<<<<<<< HEAD
-    const colors = (p.configuration_options?.find((o: any) => o.type === 'color')?.values || []).map((v: any) => {
-        // We stored 'Name|#HEX' in seed
-        const [name, hex] = (v.value || '').split('|');
-        return {
-            id: v.id,
-            name: name || v.value,
-            hex: hex || '#CCCCCC',
-            image: v.image_url
-        };
-    });
-
-    const sizes = (p.configuration_options?.find((o: any) => o.type === 'size')?.values || []).map((v: any) => ({
-        id: v.id,
-        label: v.value,
-        priceAdjustment: Number(v.price_adjustment || 0)
-    }));
-=======
     // --- DATA MAPPING: COMPATIBILITY LAYER ---
     // If has_variants is true, we prefer the new Attribute system.
     // If false (or no attributes found), we fall back to configuration_options (legacy logic).
@@ -46,11 +24,18 @@ export function transformProduct(p: any): Product & { rawConfigOptions: any[] } 
     let sizes: ProductSize[] = [];
     let available = Number(p.stock_quantity ?? 0);
 
-    const hasNewSystem = p.has_variants && p.attributes && p.attributes.length > 0;
+    // New system: has_variants is true OR we have attributes from the new table
+    const hasNewSystem = (p.has_variants || (p.attributes && p.attributes.length > 0));
 
     if (hasNewSystem) {
         // Map from new Attributes
-        const colorAttr = p.attributes.find((a: any) => a.type === 'color');
+        let colorAttr = p.attributes.find((a: any) => a.type === 'color');
+        if (!colorAttr) {
+            colorAttr = p.attributes.find((a: any) => 
+                (a.slug || '').includes('color') || (a.name || '').toLowerCase().includes('color')
+            );
+        }
+        
         if (colorAttr) {
             colors = (colorAttr.options || []).map((o: any) => ({
                 id: o.id,
@@ -60,12 +45,18 @@ export function transformProduct(p: any): Product & { rawConfigOptions: any[] } 
             }));
         }
 
-        const sizeAttr = p.attributes.find((a: any) => a.type === 'select' && (a.slug.includes('size') || a.name.toLowerCase().includes('size')));
+        let sizeAttr = p.attributes.find((a: any) => a.type === 'select' && ((a.slug || '').includes('size') || (a.name || '').toLowerCase().includes('size')));
+        if (!sizeAttr) {
+            sizeAttr = p.attributes.find((a: any) => 
+                (a.slug || '').includes('size') || (a.name || '').toLowerCase().includes('size')
+            );
+        }
+
         if (sizeAttr) {
             sizes = (sizeAttr.options || []).map((o: any) => ({
                 id: o.id,
                 label: o.value,
-                priceAdjustment: 0 // In new system, price is per-variant, not adjustment-based
+                priceAdjustment: 0 
             }));
         }
 
@@ -73,7 +64,8 @@ export function transformProduct(p: any): Product & { rawConfigOptions: any[] } 
         if (p.variants && p.variants.length > 0) {
             available = p.variants.reduce((sum: number, v: any) => sum + Number(v.stock_quantity || 0), 0);
         }
-    } else {
+    }
+ else {
         // Fallback to legacy configuration_options
         const rawColors = (p.configuration_options?.find((o: any) => o.type === 'color')?.values || []);
         colors = rawColors.map((v: any) => {
@@ -95,7 +87,6 @@ export function transformProduct(p: any): Product & { rawConfigOptions: any[] } 
             }, 0);
         }
     }
->>>>>>> d1d77d0 (dashboard and variants edits)
 
     return {
         id: p.id,
@@ -108,14 +99,9 @@ export function transformProduct(p: any): Product & { rawConfigOptions: any[] } 
         category: p.category_name || '',
         categorySlug: p.category_slug || '',
         category_id: p.category_id || '',
-<<<<<<< HEAD
-        available: 10,
-        totalStock: 50,
-=======
         rawConfigOptions: p.configuration_options || [],
         available,
         totalStock: available,
->>>>>>> d1d77d0 (dashboard and variants edits)
         rating: Number(p.avg_rating) || 4.5,
         reviewCount: Number(p.review_count) || 0,
         tags: [],
@@ -131,16 +117,12 @@ export function transformProduct(p: any): Product & { rawConfigOptions: any[] } 
         colors: colors.length ? colors : [{ id: 'default', name: 'Standard', hex: '#CCCCCC' }],
         sizes: sizes.length ? sizes : [{ id: 'default', label: 'Standard', priceAdjustment: 0 }],
         images,
-<<<<<<< HEAD
-        createdAt: p.created_at
-=======
         createdAt: p.created_at,
         variants: p.variants,
         has_variants: p.has_variants,
         price_range: p.price_range,
         display_price: p.display_price,
         attributes: p.attributes
->>>>>>> d1d77d0 (dashboard and variants edits)
     };
 }
 
@@ -266,9 +248,6 @@ class ApiClient {
         return this.fetch<any[]>('/admin/tags');
     }
 
-<<<<<<< HEAD
-    // Attributes
-=======
     // Attributes (New Variant System)
     async getAttributes(): Promise<any[]> {
         const res = await this.fetch<any>('/attributes');
@@ -331,6 +310,24 @@ class ApiClient {
         return this.fetch<any>(`/products/${productId}/variants`, { method: 'DELETE' });
     }
 
+    // POST /api/products/:id/variants/:variantId/image (Admin)
+    async uploadVariantImage(productId: string, variantId: string, formData: FormData): Promise<any> {
+        const token = useAppStore.getState().token;
+        const res = await fetch(`${API_URL}/products/${productId}/variants/${variantId}/image`, {
+            method: 'POST',
+            headers: {
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: formData,
+        });
+
+        if (!res.ok) {
+            throw new Error(`API Error: ${res.statusText}`);
+        }
+
+        return res.json();
+    }
+
     // Product Attribute Assignments
     async getProductAttributes(productId: string): Promise<any[]> {
         const res = await this.fetch<any>(`/admin/products/${productId}/attributes`);
@@ -346,7 +343,6 @@ class ApiClient {
     }
 
     // Legacy Attributes (for backward compatibility)
->>>>>>> d1d77d0 (dashboard and variants edits)
     async getAdminAttributes(): Promise<any[]> {
         return this.fetch<any[]>('/admin/attributes');
     }
@@ -447,14 +443,11 @@ class ApiClient {
         });
     }
 
-<<<<<<< HEAD
-=======
     // ─── Product Filters ────────────────────────────────────
     async getProductFilters(): Promise<{ filters: Array<{ name: string; type: string; values: Array<{ value: string; image_url: string | null }> }> }> {
         return this.fetch<any>('/products/filters');
     }
 
->>>>>>> d1d77d0 (dashboard and variants edits)
     // ─── Admin Analytics ────────────────────────────────────
     async getAdminSalesAnalytics(period?: string): Promise<any> {
         return this.fetch<any>(`/admin/analytics/sales${period ? `?period=${period}` : ''}`);
@@ -572,13 +565,10 @@ class ApiClient {
     }
 
     // ─── Auth Extensions ────────────────────────────────────
-<<<<<<< HEAD
-=======
     async getProfile(): Promise<{ user: any }> {
         return this.fetch<any>('/auth/me');
     }
 
->>>>>>> d1d77d0 (dashboard and variants edits)
     async logout(): Promise<any> {
         return this.fetch<any>('/auth/logout', { method: 'POST' });
     }
@@ -621,6 +611,52 @@ class ApiClient {
         if (!res.ok) throw new Error(`API Error: ${res.statusText}`);
         return res.json();
     }
+    
+    // ─── Orders & Cart ──────────────────────────────────────
+    async syncCart(items: any[]): Promise<any> {
+        return this.fetch<any>('/cart/sync', {
+            method: 'POST',
+            body: JSON.stringify({ items }),
+        });
+    }
+
+    async getUserOrders(params?: { page?: number; limit?: number }): Promise<{ orders: any[], total: number }> {
+        const qs = params ? '?' + new URLSearchParams(params as any).toString() : '';
+        return this.fetch<any>(`/orders${qs}`);
+    }
+
+    async getOrderDetail(id: string): Promise<{ order: any }> {
+        return this.fetch<any>(`/orders/${id}`);
+    }
+
+    async validateCoupon(code: string): Promise<any> {
+        return this.fetch<any>('/coupons/validate', {
+            method: 'POST',
+            body: JSON.stringify({ code }),
+        });
+    }
+
+    async placeOrder(orderData: {
+        shipping_address: any;
+        billing_address?: any;
+        payment_method: string;
+        coupon_code?: string;
+        notes?: string;
+    }): Promise<{ message: string, order: any }> {
+        return this.fetch<any>('/orders', {
+            method: 'POST',
+            body: JSON.stringify(orderData),
+        });
+    }
+
+    async exportData(type: string): Promise<Blob> {
+        const token = useAppStore.getState().token;
+        const res = await fetch(`${API_URL}/admin/export/${type}`, {
+            headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        });
+        if (!res.ok) throw new Error(`Export failed: ${res.statusText}`);
+        return res.blob();
+    }
 
     // Reviews
     async getProductReviews(productId: string, params?: { page?: number; limit?: number }): Promise<{ reviews: any[], total: number, page: number, totalPages: number, averageRating?: number }> {
@@ -633,6 +669,14 @@ class ApiClient {
             method: 'POST',
             body: JSON.stringify(data),
         });
+    }
+
+    async getActiveCurrencies(): Promise<any[]> {
+        return this.fetch<any[]>('/currencies/active');
+    }
+
+    async getPublicSettings(): Promise<any> {
+        return this.fetch<any>('/settings/public');
     }
 
     // Admin Reviews

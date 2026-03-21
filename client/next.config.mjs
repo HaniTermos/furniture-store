@@ -1,7 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-<<<<<<< HEAD
-=======
     eslint: {
         // Pre-existing ESLint issues (no-explicit-any, unused imports) — not from production readiness fixes
         ignoreDuringBuilds: true,
@@ -10,7 +8,6 @@ const nextConfig = {
         // Pre-existing TS errors (wrong property names, type mismatches) — not from production readiness fixes
         ignoreBuildErrors: true,
     },
->>>>>>> d1d77d0 (dashboard and variants edits)
     images: {
         remotePatterns: [
             {
@@ -19,8 +16,6 @@ const nextConfig = {
                 port: '',
                 pathname: '/**',
             },
-<<<<<<< HEAD
-=======
             {
                 protocol: 'https',
                 hostname: 'res.cloudinary.com',
@@ -45,7 +40,6 @@ const nextConfig = {
                 port: '',
                 pathname: '/**',
             },
->>>>>>> d1d77d0 (dashboard and variants edits)
         ],
     },
 };

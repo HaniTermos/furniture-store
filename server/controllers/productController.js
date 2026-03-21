@@ -2,16 +2,11 @@ const Product = require('../models/Product');
 const ProductImage = require('../models/ProductImage');
 const ConfigurationOption = require('../models/ConfigurationOption');
 const Review = require('../models/Review');
-<<<<<<< HEAD
-const { generateSlug, generateUniqueSlug } = require('../utils/generateSlug');
-const imageService = require('../services/imageService');
-=======
 const ProductVariant = require('../models/ProductVariant');
 const Attribute = require('../models/Attribute');
 const { generateSlug, generateUniqueSlug } = require('../utils/generateSlug');
 const imageService = require('../services/imageService');
 const { validateMagicBytes } = require('../middleware/upload');
->>>>>>> d1d77d0 (dashboard and variants edits)
 
 const productController = {
     /**
@@ -33,12 +28,6 @@ const productController = {
 
             if (result.products.length > 0) {
                 const productIds = result.products.map(p => p.id);
-<<<<<<< HEAD
-                const optionsMap = await ConfigurationOption.findWithValuesByProductIds(productIds);
-                result.products = result.products.map(p => ({
-                    ...p,
-                    configuration_options: optionsMap[p.id] || []
-=======
                 // Fetch legacy options (backward compat)
                 const optionsMap = await ConfigurationOption.findWithValuesByProductIds(productIds);
                 // Fetch new system attributes
@@ -48,7 +37,6 @@ const productController = {
                     ...p,
                     configuration_options: optionsMap[p.id] || [],
                     attributes: attributesMap[p.id] || []
->>>>>>> d1d77d0 (dashboard and variants edits)
                 }));
             }
 
@@ -69,8 +57,11 @@ const productController = {
             if (products.length > 0) {
                 const productIds = products.map(p => p.id);
                 const optionsMap = await ConfigurationOption.findWithValuesByProductIds(productIds);
+                const attributesMap = await Attribute.findWithValuesByProductIds(productIds);
+                
                 for (let p of products) {
                     p.configuration_options = optionsMap[p.id] || [];
+                    p.attributes = attributesMap[p.id] || [];
                 }
             }
 
@@ -99,13 +90,6 @@ const productController = {
                 return res.status(404).json({ error: 'Product not found.' });
             }
 
-<<<<<<< HEAD
-            // Get images, options, reviews
-            const [images, options, reviewData] = await Promise.all([
-                ProductImage.findByProduct(product.id),
-                ConfigurationOption.findWithValues(product.id),
-                Review.findByProduct(product.id, { page: 1, limit: 5 }),
-=======
             // Get images, options, reviews, variants, and attributes
             const [images, options, reviewData, variants, attributes] = await Promise.all([
                 ProductImage.findByProduct(product.id),
@@ -113,24 +97,19 @@ const productController = {
                 Review.findByProduct(product.id, { page: 1, limit: 5 }),
                 ProductVariant.findByProduct(product.id),
                 Attribute.getProductAttributes(product.id),
->>>>>>> d1d77d0 (dashboard and variants edits)
             ]);
 
             // Get related products
             const related = await Product.getRelated(product.id, product.category_id, 4);
 
             res.json({
-<<<<<<< HEAD
-                product: { ...product, images, configuration_options: options },
-=======
                 product: { 
                     ...product, 
-                    images, 
+                    images, // Gallery images (Frontend will decide whether to show them)
                     configuration_options: options,
-                    variants,
-                    attributes
+                    variants: variants || [],
+                    attributes: attributes || []
                 },
->>>>>>> d1d77d0 (dashboard and variants edits)
                 reviews: reviewData,
                 relatedProducts: related,
             });
@@ -140,8 +119,6 @@ const productController = {
     },
 
     /**
-<<<<<<< HEAD
-=======
      * GET /api/products/filters
      * Returns all unique attribute option names + values across active products
      */
@@ -180,7 +157,6 @@ const productController = {
     },
 
     /**
->>>>>>> d1d77d0 (dashboard and variants edits)
      * POST /api/products (Admin)
      */
     async create(req, res, next) {
@@ -248,8 +224,6 @@ const productController = {
                 return res.status(400).json({ error: 'No image file provided.' });
             }
 
-<<<<<<< HEAD
-=======
             // Validate magic bytes to prevent spoofed Content-Type bypass
             try {
                 validateMagicBytes(req.file.path);
@@ -257,7 +231,6 @@ const productController = {
                 return res.status(400).json({ error: err.message });
             }
 
->>>>>>> d1d77d0 (dashboard and variants edits)
             const result = await imageService.upload(req.file, 'furniture-store/products');
             const image = await ProductImage.create({
                 product_id: req.params.id,
@@ -268,6 +241,40 @@ const productController = {
             });
 
             res.status(201).json({ message: 'Image uploaded.', image });
+        } catch (error) {
+            next(error);
+        }
+    },
+
+    /**
+     * POST /api/products/:id/variants/:variantId/image (Admin)
+     */
+    async uploadVariantImage(req, res, next) {
+        try {
+            if (!req.file) {
+                return res.status(400).json({ error: 'No image file provided.' });
+            }
+            const { id: variantId } = req.params;
+            
+            // Validate magic bytes
+            try {
+                validateMagicBytes(req.file.path);
+            } catch (err) {
+                return res.status(400).json({ error: err.message });
+            }
+
+            const result = await imageService.upload(req.file, 'furniture-store/variants');
+            
+            const variant = await ProductVariant.update(variantId, {
+                image_url: result.url,
+                image_alt: req.body.alt_text || ''
+            });
+
+            if (!variant) {
+                return res.status(404).json({ error: 'Variant not found.' });
+            }
+
+            res.status(200).json({ message: 'Variant image uploaded.', variant });
         } catch (error) {
             next(error);
         }

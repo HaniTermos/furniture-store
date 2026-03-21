@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Check, AlertCircle } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Check, AlertCircle, ChevronDown } from 'lucide-react';
 import type { ProductVariant, ProductAttribute } from '@/types';
 import { useCurrency } from '@/hooks/useCurrency';
 
@@ -24,27 +24,25 @@ export default function VariantSelector({
     const [quantity, setQuantity] = useState(1);
     const { formatPrice } = useCurrency();
 
-    // Get available options for each attribute based on current selections
-    const getAvailableOptions = (attributeId: string) => {
-        const otherSelections = { ...selectedOptions };
-        delete otherSelections[attributeId];
-
-        return variants
-            .filter(v => v.is_active && v.stock_quantity > 0)
-            .filter(v => {
-                // Check if variant matches all other selected options
-                return Object.entries(otherSelections).every(([attrId, optId]) =>
-                    v.attributes.some(a => a.attribute_id === attrId && a.option_id === optId)
-                );
-            })
-            .flatMap(v => v.attributes.filter(a => a.attribute_id === attributeId))
-            .map(a => a.option_id);
-    };
+    // Sort attributes based on user preference: Color -> Size -> Material
+    // or just use their sort_order/product_sort from backend
+    const sortedAttributes = useMemo<ProductAttribute[]>(() => {
+        return [...attributes].sort((a, b) => {
+            const getRank = (name: string) => {
+                const n = name.toLowerCase();
+                if (n.includes('color')) return 1;
+                if (n.includes('size')) return 2;
+                if (n.includes('material')) return 3;
+                return 4;
+            };
+            return getRank(a.name) - getRank(b.name);
+        });
+    }, [attributes]);
 
     // Find matching variant based on selections
-    const selectedVariant = useMemo(() => {
-        const selectedAttrIds = Object.keys(selectedOptions);
-        if (selectedAttrIds.length === 0) return null;
+    const selectedVariant = useMemo<ProductVariant | null>(() => {
+        const selectedAttrIds = Object.keys(selectedOptions).filter(id => selectedOptions[id]);
+        if (selectedAttrIds.length < sortedAttributes.length) return null;
 
         return variants.find(v =>
             v.is_active &&
@@ -54,136 +52,118 @@ export default function VariantSelector({
                 )
             )
         ) || null;
-    }, [variants, selectedOptions]);
+    }, [variants, selectedOptions, sortedAttributes]);
 
     // Update parent when variant changes
-    useMemo(() => {
+    useEffect(() => {
         onVariantSelect(selectedVariant);
     }, [selectedVariant, onVariantSelect]);
 
     const handleOptionSelect = (attributeId: string, optionId: string) => {
-        setSelectedOptions(prev => ({
-            ...prev,
-            [attributeId]: prev[attributeId] === optionId ? '' : optionId
-        }));
+        setSelectedOptions((prev: Record<string, string>) => {
+            const next = { ...prev };
+            next[attributeId] = optionId;
+            
+            // Clear subsequent attributes if this one changed
+            const currentIndex = sortedAttributes.findIndex(a => a.id === attributeId);
+            for (let i = currentIndex + 1; i < sortedAttributes.length; i++) {
+                delete next[sortedAttributes[i].id];
+            }
+            
+            return next;
+        });
     };
 
     const isOptionAvailable = (attributeId: string, optionId: string) => {
-        const available = getAvailableOptions(attributeId);
-        return available.includes(optionId);
+        const currentIndex = sortedAttributes.findIndex(a => a.id === attributeId);
+        const precedingSelections: Record<string, string> = {};
+        for (let i = 0; i < currentIndex; i++) {
+            const attr = sortedAttributes[i];
+            if (selectedOptions[attr.id]) {
+                precedingSelections[attr.id] = selectedOptions[attr.id];
+            } else {
+                return false; 
+            }
+        }
+
+        return variants.some(v => 
+            v.is_active &&
+            Object.entries(precedingSelections).every(([attrId, optId]) => 
+                v.attributes.some(a => a.attribute_id === attrId && a.option_id === optId)
+            ) &&
+            v.attributes.some(a => a.attribute_id === attributeId && a.option_id === optionId)
+        );
     };
 
     const canAddToCart = selectedVariant && selectedVariant.stock_quantity >= quantity;
 
-    const currentPrice = selectedVariant?.price;
-
     return (
-        <div className="space-y-6">
-            {/* Price Display */}
-            <div className="flex items-baseline gap-2">
-                {selectedVariant ? (
-                    <span className="text-3xl font-bold text-gray-900">
-                        {formatPrice(Number(currentPrice)).display}
-                    </span>
-                ) : (
-                    <span className="text-3xl font-bold text-gray-900">
-                        Select options for price
-                    </span>
-                )}
-            </div>
+        <div className="space-y-8">
+            {sortedAttributes.map((attr, index) => {
+                const isPreviousSelected = index === 0 || !!selectedOptions[sortedAttributes[index - 1].id];
+                const isSelected = !!selectedOptions[attr.id];
+                const currentOption = attr.options.find(o => o.id === selectedOptions[attr.id]);
 
-            {/* Attribute Selectors */}
-            {attributes.map((attr) => {
-                const isSelected = selectedOptions[attr.id];
-                
+                if (!isPreviousSelected) return null;
+
                 return (
-                    <div key={attr.id} className="space-y-3">
+                    <div key={attr.id} className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
                         <div className="flex items-center justify-between">
-                            <label className="text-sm font-medium text-gray-700">
-                                {attr.name}
+                            <label className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-400">
+                                Step {index + 1}: Select {attr.name}
                             </label>
                             {isSelected && (
-                                <span className="text-xs text-green-600 font-medium">
-                                    Selected: {attr.options.find(o => o.id === isSelected)?.value}
+                                <span className="text-[10px] text-green-600 font-bold uppercase tracking-wider flex items-center gap-1">
+                                    <Check className="w-3 h-3" /> {currentOption?.value}
                                 </span>
                             )}
                         </div>
 
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-3">
                             {attr.options.map((opt) => {
                                 const isSelectedOption = selectedOptions[attr.id] === opt.id;
                                 const isAvailable = isOptionAvailable(attr.id, opt.id);
 
-                                if (attr.type === 'color') {
+                                if (attr.type === 'color' || attr.type === 'image') {
                                     return (
                                         <button
                                             key={opt.id}
                                             onClick={() => isAvailable && handleOptionSelect(attr.id, opt.id)}
                                             disabled={!isAvailable}
-                                            className={`group relative w-10 h-10 rounded-full border-2 transition-all ${
+                                            className={`group relative w-12 h-12 rounded-full transition-all duration-300 ${
                                                 isSelectedOption
-                                                    ? 'border-blue-500 ring-2 ring-blue-200'
-                                                    : 'border-gray-200 hover:border-gray-300'
-                                            } ${!isAvailable ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
-                                            style={{ backgroundColor: opt.color_hex || '#ccc' }}
+                                                    ? 'ring-2 ring-neutral-900 ring-offset-2 scale-110 shadow-lg'
+                                                    : 'hover:scale-105'
+                                            } ${!isAvailable ? 'opacity-20 cursor-not-allowed grayscale' : 'cursor-pointer'} overflow-hidden`}
+                                            style={{ backgroundColor: !opt.image_url ? (opt.color_hex || '#ccc') : undefined }}
                                             title={opt.value}
                                         >
-                                            {isSelectedOption && (
-                                                <Check className="w-5 h-5 text-white absolute inset-0 m-auto drop-shadow-md" />
-                                            )}
-                                            {!isAvailable && (
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    <div className="w-full h-0.5 bg-gray-400 rotate-45" />
-                                                </div>
-                                            )}
-                                        </button>
-                                    );
-                                }
-
-                                if (attr.type === 'image') {
-                                    return (
-                                        <button
-                                            key={opt.id}
-                                            onClick={() => isAvailable && handleOptionSelect(attr.id, opt.id)}
-                                            disabled={!isAvailable}
-                                            className={`relative w-16 h-16 rounded-lg border-2 overflow-hidden transition-all ${
-                                                isSelectedOption
-                                                    ? 'border-blue-500 ring-2 ring-blue-200'
-                                                    : 'border-gray-200 hover:border-gray-300'
-                                            } ${!isAvailable ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
-                                            title={opt.value}
-                                        >
-                                            {opt.image_url ? (
-                                                <img
-                                                    src={opt.image_url}
-                                                    alt={opt.value}
+                                            {opt.image_url && (
+                                                <img 
+                                                    src={opt.image_url} 
+                                                    alt={opt.value} 
                                                     className="w-full h-full object-cover"
                                                 />
-                                            ) : (
-                                                <div className="w-full h-full bg-gray-100 flex items-center justify-center text-xs text-gray-500">
-                                                    {opt.value}
-                                                </div>
                                             )}
                                             {isSelectedOption && (
-                                                <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
-                                                    <Check className="w-5 h-5 text-blue-600" />
+                                                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                                    <Check className="w-5 h-5 text-white drop-shadow-md" />
                                                 </div>
                                             )}
                                         </button>
                                     );
                                 }
 
-                                // Default: select/button type
                                 return (
                                     <button
                                         key={opt.id}
                                         onClick={() => isAvailable && handleOptionSelect(attr.id, opt.id)}
                                         disabled={!isAvailable}
-                                        className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+                                        className={`px-6 py-3 rounded-full border text-sm font-medium tracking-tight transition-all duration-300 ${
                                             isSelectedOption
-                                                ? 'bg-blue-600 text-white border-blue-600'
-                                                : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
-                                        } ${!isAvailable ? 'opacity-40 cursor-not-allowed bg-gray-50' : 'cursor-pointer'}`}
+                                                ? 'bg-neutral-900 text-white border-neutral-900 shadow-xl scale-105'
+                                                : 'bg-white text-neutral-600 border-neutral-100 hover:border-neutral-300 hover:bg-neutral-50'
+                                        } ${!isAvailable ? 'opacity-30 cursor-not-allowed bg-neutral-50 border-transparent' : 'cursor-pointer'}`}
                                     >
                                         {opt.value}
                                     </button>
@@ -194,52 +174,51 @@ export default function VariantSelector({
                 );
             })}
 
-            {/* Stock Status */}
-            {selectedVariant ? (
-                <div className={`flex items-center gap-2 text-sm ${
-                    selectedVariant.stock_quantity > 0 ? 'text-green-600' : 'text-red-600'
-                }`}>
-                    {selectedVariant.stock_quantity > 0 ? (
-                        <>
-                            <Check className="w-4 h-4" />
-                            <span>In Stock ({selectedVariant.stock_quantity} available)</span>
-                        </>
-                    ) : (
-                        <>
-                            <AlertCircle className="w-4 h-4" />
-                            <span>Out of Stock</span>
-                        </>
-                    )}
-                </div>
-            ) : (
-                <div className="flex items-center gap-2 text-sm text-amber-600">
-                    <AlertCircle className="w-4 h-4" />
-                    <span>Select all options to see availability</span>
-                </div>
-            )}
+            {/* Stock & SKU Info */}
+            <div className="pt-6 border-t border-neutral-100 space-y-4">
+                {selectedVariant ? (
+                    <div className="flex flex-col gap-2">
+                        <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-widest ${
+                            selectedVariant.stock_quantity > 0 ? 'text-green-600' : 'text-red-500'
+                        }`}>
+                            {selectedVariant.stock_quantity > 0 ? (
+                                <>
+                                    <Check className="w-3 h-3" />
+                                    <span>In Stock ({selectedVariant.stock_quantity})</span>
+                                </>
+                            ) : (
+                                <>
+                                    <AlertCircle className="w-3 h-3" />
+                                    <span>Out of Stock</span>
+                                </>
+                            )}
+                        </div>
+                        <div className="text-[10px] text-neutral-400 font-mono tracking-tighter">
+                            MODEL ID: {selectedVariant.sku}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="text-[10px] text-neutral-400 uppercase tracking-[0.2em] font-medium italic">
+                        Select configuration to see availability
+                    </div>
+                )}
+            </div>
 
-            {/* SKU Display */}
-            {selectedVariant && (
-                <div className="text-sm text-gray-500">
-                    SKU: <span className="font-mono">{selectedVariant.sku}</span>
-                </div>
-            )}
-
-            {/* Quantity & Add to Cart */}
-            <div className="flex gap-4 pt-4 border-t">
-                <div className="flex items-center border rounded-lg">
+            {/* Add to Cart Actions */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                <div className="flex items-center bg-neutral-50 border border-neutral-100 rounded-full px-2 py-1">
                     <button
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        className="px-3 py-2 hover:bg-gray-100"
+                        className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-neutral-900 transition-colors"
                     >
                         -
                     </button>
-                    <span className="px-4 py-2 font-medium min-w-[3rem] text-center">
+                    <span className="w-10 text-center font-bold text-neutral-900">
                         {quantity}
                     </span>
                     <button
                         onClick={() => setQuantity(quantity + 1)}
-                        className="px-3 py-2 hover:bg-gray-100"
+                        className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-neutral-900 transition-colors"
                     >
                         +
                     </button>
@@ -248,16 +227,16 @@ export default function VariantSelector({
                 <button
                     onClick={() => selectedVariant && canAddToCart && onAddToCart(selectedVariant, quantity)}
                     disabled={!canAddToCart}
-                    className={`flex-1 py-3 px-6 rounded-lg font-medium transition-colors ${
+                    className={`flex-1 py-4 px-8 rounded-full font-bold uppercase tracking-[0.2em] text-xs transition-all duration-500 ${
                         canAddToCart
-                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            ? 'bg-neutral-900 text-white hover:bg-neutral-800 shadow-2xl hover:shadow-neutral-900/40'
+                            : 'bg-neutral-100 text-neutral-400 cursor-not-allowed opacity-50'
                     }`}
                 >
                     {canAddToCart
                         ? 'Add to Cart'
                         : !selectedVariant
-                            ? 'Select Options'
+                            ? 'Pick Options'
                             : 'Out of Stock'
                     }
                 </button>
@@ -265,4 +244,3 @@ export default function VariantSelector({
         </div>
     );
 }
-

@@ -70,7 +70,9 @@ export default function CartDrawer() {
                             ) : (
                                 <div className="space-y-6">
                                     {items.map((item) => {
-                                        const price = item.product.price + (item.selectedSize?.priceAdjustment || 0);
+                                        const price = item.variant
+                                            ? Number(item.variant.price)
+                                            : (Number(item.product.base_price ?? item.product.price ?? 0) + (item.selectedSize?.priceAdjustment || 0));
                                         return (
                                             <motion.div
                                                 key={item.id}
@@ -86,10 +88,8 @@ export default function CartDrawer() {
                                                             src={item.product.images[0].url}
                                                             alt={item.product.name}
                                                             fill
-<<<<<<< HEAD
-=======
                                                             sizes="80px"
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                                                             className="object-cover"
                                                         />
                                                     )}

@@ -1,0 +1,393 @@
+
+> server@1.0.0 test
+> cross-env NODE_ENV=test jest --runInBand --detectOpenHandles
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env.test -- tip: ⚙️  enable debug logging with { debug: true }
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (18) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    Test database schema globally initialized.
+
+      at Object.log (tests/setup.js:33:17)
+
+[2026-03-19T14:10:27.953Z] GET /health 200 5.534 ms | RequestID: d8c73708-fb74-4612-81bc-53544f7c415a
+FAIL tests/db.test.js
+  Database Connection
+    √ should connect to the test database successfully (9 ms)
+    × should have the correct test database name in connection (10 ms)
+    √ should have health endpoint working (80 ms)
+
+  ● Database Connection › should have the correct test database name in connection
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "furniture_store_test"
+    Received: "furniture_store"
+
+    [0m [90m 11 |[39m     it([32m'should have the correct test database name in connection'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+     [90m 12 |[39m         [36mconst[39m res [33m=[39m [36mawait[39m pool[33m.[39mquery([32m'SELECT current_database()'[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 13 |[39m         expect(res[33m.[39mrows[[35m0[39m][33m.[39mcurrent_database)[33m.[39mtoBe([32m'furniture_store_test'[39m)[33m;[39m
+     [90m    |[39m                                              [31m[1m^[22m[39m
+     [90m 14 |[39m     })[33m;[39m
+     [90m 15 |[39m
+     [90m 16 |[39m     it([32m'should have health endpoint working'[39m[33m,[39m [36masync[39m () [33m=>[39m {[0m
+
+      at Object.toBe (tests/db.test.js:13:46)
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env.test -- tip: ⚙️  override existing env vars with { override: true }
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (18) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    Test database schema globally initialized.
+
+      at Object.log (tests/setup.js:33:17)
+
+  console.log
+    [2026-03-19T14:10:29.845Z] [INFO] [EMAIL STUB] To: cartops2@example.com | Subject: Welcome to HTW Furniture — Please Verify Your Email
+
+      at Object.log [as info] (utils/logger.js:3:17)
+
+[2026-03-19T14:10:29.856Z] POST /api/auth/register 201 399.803 ms | RequestID: 7a4a5e23-7581-4687-9e1b-6543e1739492
+[2026-03-19T14:10:29.967Z] DELETE /api/cart 200 20.203 ms | RequestID: 0d132dff-ec5c-4db8-946a-036f44d624cc
+[2026-03-19T14:10:30.024Z] POST /api/cart 201 39.497 ms | RequestID: cbd3466a-cbdd-4c6c-a408-583b19570b1d
+[2026-03-19T14:10:30.048Z] DELETE /api/cart 200 6.565 ms | RequestID: 28750b0b-d21e-4b65-9d04-ff7a71684614
+[2026-03-19T14:10:30.078Z] POST /api/cart 404 12.456 ms | RequestID: 50bf05dd-007e-4c56-9be4-4889ad004d14
+[2026-03-19T14:10:30.101Z] DELETE /api/cart 200 6.387 ms | RequestID: fedec4d6-9f1b-43c8-9921-4812037127c0
+[2026-03-19T14:10:30.137Z] POST /api/cart 201 19.040 ms | RequestID: 07c29b80-7411-4092-bc8e-ca01bee47721
+[2026-03-19T14:10:30.172Z] PUT /api/cart/d8d53a0a-b22f-4ea3-bd8e-ea7a5399bd25 200 18.138 ms | RequestID: b98a522f-a401-413a-b71b-da093d74bba4
+[2026-03-19T14:10:30.197Z] DELETE /api/cart 200 7.201 ms | RequestID: af82b017-6031-4e1a-a090-24429ebf1177
+[2026-03-19T14:10:30.219Z] PUT /api/cart/some-fake-id 400 6.316 ms | RequestID: 0ecd6b4d-4f13-4189-bf2e-4c3588eb2623
+[2026-03-19T14:10:30.240Z] DELETE /api/cart 200 6.227 ms | RequestID: 78338e84-fc08-4ab9-aad1-24acce722b2d
+[2026-03-19T14:10:30.280Z] POST /api/cart 201 19.974 ms | RequestID: 23748b51-e9d5-47e2-9148-ac0ba8f67d88
+[2026-03-19T14:10:30.303Z] DELETE /api/cart/0ac1240a-e2f0-4266-8682-3d2514661c0a 200 11.532 ms | RequestID: 0d9f7f0c-9faa-496e-86d1-f3a119d5691c
+PASS tests/cart.operations.test.js
+  Cart Items Operations
+    POST /api/cart
+      √ should add item to cart (96 ms)
+      √ should block adding invalid product (53 ms)
+    PUT /api/cart/:id
+      √ should update item quantity (93 ms)
+      √ should block updating with zero quantity (47 ms)
+    DELETE /api/cart/:id
+      √ should remove item from cart cleanly (84 ms)
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env.test -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (18) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    Test database schema globally initialized.
+
+      at Object.log (tests/setup.js:33:17)
+
+  console.log
+    [2026-03-19T14:10:31.528Z] [INFO] [EMAIL STUB] To: Barry_Deckow@hotmail.com | Subject: Welcome to HTW Furniture — Please Verify Your Email
+
+      at Object.log [as info] (utils/logger.js:3:17)
+
+[2026-03-19T14:10:31.533Z] POST /api/auth/register 201 383.821 ms | RequestID: 40cbd0a8-553f-482c-a6f2-efa0620fd7e8
+[2026-03-19T14:10:31.991Z] POST /api/auth/login 200 377.810 ms | RequestID: 0ba37f2d-c215-452f-b34c-93d0b6c306cb
+[2026-03-19T14:10:32.059Z] POST /api/admin/products 201 33.290 ms | RequestID: c8f1b630-3b7b-4bac-a099-b655dae553d1
+[2026-03-19T14:10:32.121Z] POST /api/products/d51bc33a-7bae-4a1a-8bd4-13163ab458c9/variants/matrix 201 39.023 ms | RequestID: b9d84c62-1d85-4e5d-984a-b30ce2231356
+[2026-03-19T14:10:32.188Z] PUT /api/admin/products/d51bc33a-7bae-4a1a-8bd4-13163ab458c9 200 46.308 ms | RequestID: 96129a4a-a658-4c0b-8a07-a27de3acbc31
+[2026-03-19T14:10:32.424Z] GET /api/products/ergonomic-concrete-pants 200 218.121 ms | RequestID: 603c3f28-8843-4194-96aa-1ef2a0d378cc
+[2026-03-19T14:10:32.468Z] GET /api/products 200 27.019 ms | RequestID: c1c018be-8f3e-4bc7-a86d-e8d67bfa2288
+[2026-03-19T14:10:32.509Z] POST /api/admin/products 201 18.462 ms | RequestID: 080d6c70-3085-4bdf-a854-a2d0768440f2
+[2026-03-19T14:10:32.553Z] POST /api/products/99cebc23-b828-4a01-ab43-813ebd1276a1/variants/matrix 201 28.062 ms | RequestID: 165c66dc-1af1-40f1-bd00-2062f1a38fdb
+[2026-03-19T14:10:32.601Z] GET /api/products/awesome-plastic-mouse 200 31.652 ms | RequestID: 899db62e-a596-4630-8a34-aacf21fb4329
+[2026-03-19T14:10:32.662Z] GET /api/products 200 39.812 ms | RequestID: 2364de97-fe1f-4f34-8537-22d804555ef1
+PASS tests/variants.test.js
+  Product Variants & Attributes API
+    Variant Life Cycle
+      √ should create a product with variants and attributes (465 ms)
+      √ should show options even if variant is out of stock (189 ms)
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env.test -- tip: 🤖 agentic secret storage: https://dotenvx.com/as2
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (18) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    Test database schema globally initialized.
+
+      at Object.log (tests/setup.js:33:17)
+
+  console.log
+    [2026-03-19T14:10:33.806Z] [INFO] [EMAIL STUB] To: testauth@example.com | Subject: Welcome to HTW Furniture — Please Verify Your Email
+
+      at Object.log [as info] (utils/logger.js:3:17)
+
+[2026-03-19T14:10:33.811Z] POST /api/auth/register 201 370.200 ms | RequestID: 5a7b8453-e1ab-49a2-b436-594901baabe2
+[2026-03-19T14:10:33.835Z] POST /api/auth/register 409 3.361 ms | RequestID: 07311477-1ef6-4416-953b-84424409ae88
+[2026-03-19T14:10:33.851Z] POST /api/auth/register 400 0.994 ms | RequestID: 4d7f753f-0024-40bc-a8e5-1c980e06f52f
+[2026-03-19T14:10:34.288Z] POST /api/auth/login 200 365.003 ms | RequestID: 5b2e56a9-a28c-4412-9e07-e89dd5e42159
+[2026-03-19T14:10:34.671Z] POST /api/auth/login 401 367.456 ms | RequestID: adab5889-2273-4c10-84b6-e7fa9708a9d2
+PASS tests/auth.test.js
+  Auth API Endpoints
+    POST /api/auth/register
+      √ should register a new user successfully (394 ms)
+      √ should fail if email is already registered (22 ms)
+      √ should fail validation with short password (17 ms)
+    POST /api/auth/login
+      √ should login successfully with correct credentials (435 ms)
+      √ should prevent login with wrong password (384 ms)
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env.test -- tip: ⚙️  enable debug logging with { debug: true }
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (18) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    Test database schema globally initialized.
+
+      at Object.log (tests/setup.js:33:17)
+
+  console.log
+    [2026-03-19T14:10:35.898Z] [INFO] [EMAIL STUB] To: orderops@example.com | Subject: Welcome to HTW Furniture — Please Verify Your Email
+
+      at Object.log [as info] (utils/logger.js:3:17)
+
+[2026-03-19T14:10:35.903Z] POST /api/auth/register 201 357.876 ms | RequestID: 2a91f2ce-2e28-49ea-9066-6afaef25cc22
+[2026-03-19T14:10:35.925Z] GET /api/auth/me 200 6.587 ms | RequestID: cec9294f-9ea5-4107-8fd9-652ce3311ce9
+[2026-03-19T14:10:35.968Z] DELETE /api/cart 200 8.909 ms | RequestID: a99f2937-14f1-45d4-b412-ed87b10b49a0
+[2026-03-19T14:10:36.054Z] POST /api/orders 400 70.244 ms | RequestID: 89b8a8c7-7421-4a74-8243-4b98bd645ffc
+[2026-03-19T14:10:36.077Z] DELETE /api/cart 200 7.505 ms | RequestID: a836b87d-8116-4a34-b56d-f06e76dee572
+[2026-03-19T14:10:36.121Z] POST /api/cart 201 27.190 ms | RequestID: 39328241-273d-448f-bfd6-55555e830512
+  console.log
+    [2026-03-19T14:10:36.161Z] [INFO] [EMAIL STUB] To: orderops@example.com | Subject: Order #ORD-20260319-A3276EB1 Confirmed — HTW Furniture
+
+      at Object.log [as info] (utils/logger.js:3:17)
+
+[2026-03-19T14:10:36.174Z] POST /api/orders 201 34.921 ms | RequestID: f9708517-e607-4656-b553-1bacda50861a
+[2026-03-19T14:10:36.203Z] GET /api/cart 200 11.606 ms | RequestID: 9b650934-4689-4f06-baad-67af76a5a8a4
+[2026-03-19T14:10:36.225Z] DELETE /api/cart 200 6.190 ms | RequestID: 688b662c-0018-426f-a4c4-7f01bd23ab73
+[2026-03-19T14:10:36.251Z] GET /api/orders 200 11.842 ms | RequestID: 80919ce0-d986-4f14-b46e-4d1053a5b120
+PASS tests/orders.test.js
+  Order Lifecycle API
+    √ should prevent checkout with an empty cart (113 ms)
+    √ should successfully create an order from a populated cart (150 ms)
+    √ should fetch the user order history (48 ms)
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env.test -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (18) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    Test database schema globally initialized.
+
+      at Object.log (tests/setup.js:33:17)
+
+  console.log
+    [2026-03-19T14:10:37.357Z] [INFO] [EMAIL STUB] To: carttest@example.com | Subject: Welcome to HTW Furniture — Please Verify Your Email
+
+      at Object.log [as info] (utils/logger.js:3:17)
+
+[2026-03-19T14:10:37.362Z] POST /api/auth/register 201 371.116 ms | RequestID: 65ee499d-486c-4401-84a8-c7e8083f60c9
+[2026-03-19T14:10:37.378Z] GET /api/cart 401 0.365 ms | RequestID: 87844226-8bf6-46e2-9730-9a8beeee6e8a
+[2026-03-19T14:10:37.413Z] GET /api/cart 200 18.944 ms | RequestID: fc41f4f5-66db-4535-8d69-6faa7cd0b765
+PASS tests/cart.test.js
+  Cart API Endpoints
+    GET /api/cart
+      √ should block unauthenticated access (17 ms)
+      √ should fetch the cart for an authenticated user (35 ms)
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env.test -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (18) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    Test database schema globally initialized.
+
+      at Object.log (tests/setup.js:33:17)
+
+  console.error
+    [2026-03-19T14:10:38.112Z] [ERROR] POST /api/auth/login — Expected ',' or '}' after property value in JSON at position 24 (line 1 column 25)
+
+    [0m [90m  7 |[39m     }[33m,[39m
+     [90m  8 |[39m     error[33m:[39m ([33m...[39margs) [33m=>[39m {
+    [31m[1m>[22m[39m[90m  9 |[39m         console[33m.[39merror([32m`[${new Date().toISOString()}] [ERROR]`[39m[33m,[39m [33m...[39margs)[33m;[39m
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 10 |[39m     }[33m,[39m
+     [90m 11 |[39m     debug[33m:[39m ([33m...[39margs) [33m=>[39m {
+     [90m 12 |[39m         [36mif[39m (process[33m.[39menv[33m.[39m[33mNODE_ENV[39m [33m===[39m [32m'development'[39m) {[0m
+
+      at Object.error (utils/logger.js:9:17)
+      at error (middleware/errorHandler.js:5:12)
+      at Layer.handleError (node_modules/router/lib/layer.js:116:17)
+      at trimPrefix (node_modules/router/index.js:340:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at Layer.handleError (node_modules/router/lib/layer.js:111:12)
+      at trimPrefix (node_modules/router/index.js:340:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at Layer.handleError (node_modules/router/lib/layer.js:111:12)
+      at trimPrefix (node_modules/router/index.js:340:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at Layer.handleError (node_modules/router/lib/layer.js:111:12)
+      at trimPrefix (node_modules/router/index.js:340:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at Layer.handleError (node_modules/router/lib/layer.js:111:12)
+      at trimPrefix (node_modules/router/index.js:340:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at Layer.handleError (node_modules/router/lib/layer.js:111:12)
+      at trimPrefix (node_modules/router/index.js:340:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at Layer.handleError (node_modules/router/lib/layer.js:111:12)
+      at trimPrefix (node_modules/router/index.js:340:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at Layer.handleError (node_modules/router/lib/layer.js:111:12)
+      at trimPrefix (node_modules/router/index.js:340:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at Layer.handleError (node_modules/router/lib/layer.js:111:12)
+      at trimPrefix (node_modules/router/index.js:340:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at Layer.handleError (node_modules/router/lib/layer.js:111:12)
+      at trimPrefix (node_modules/router/index.js:340:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at Layer.handleError (node_modules/router/lib/layer.js:111:12)
+      at trimPrefix (node_modules/router/index.js:340:13)
+      at node_modules/router/index.js:297:9
+      at processParams (node_modules/router/index.js:582:12)
+      at next (node_modules/router/index.js:291:5)
+      at node_modules/body-parser/lib/read.js:164:7
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+
+[2026-03-19T14:10:38.154Z] GET /api/cart 401 1.263 ms | RequestID: 8bc50c05-fb8d-4e78-8801-47ccbfbf4eef
+[2026-03-19T14:10:38.177Z] POST /api/auth/login 400 1.073 ms | RequestID: 515c2881-e515-4023-80c0-c094e05c8b64
+[2026-03-19T14:10:38.259Z] POST /api/auth/login 429 0.628 ms | RequestID: d2736926-c75d-4037-ac7f-6d40cdc2169b
+[2026-03-19T14:10:38.266Z] POST /api/auth/login 429 0.472 ms | RequestID: 897ed540-ecd2-4239-a636-86257df4a9b9
+[2026-03-19T14:10:38.269Z] POST /api/auth/login 401 39.441 ms | RequestID: c977e75a-ab03-45a9-b877-c6541c4840a4
+[2026-03-19T14:10:38.335Z] POST /api/auth/login 401 98.030 ms | RequestID: 15f3f1c5-00fd-45b4-9be0-6ec954ffd2c4
+[2026-03-19T14:10:38.337Z] POST /api/auth/login 401 93.378 ms | RequestID: e59dfffe-323d-4d65-8e78-2fa51c3250aa
+[2026-03-19T14:10:38.344Z] POST /api/auth/login 401 92.844 ms | RequestID: abacce55-0dde-4298-bcdc-79c9df310afa
+PASS tests/security.test.js
+  Security and Edge Case Handlers
+    Handling Malformations
+      √ should handle malformed JSON softly (43 ms)
+      √ should handle malformed JWT tokens gracefully (24 ms)
+    Injection Boundaries
+      √ should reject SQL syntax inside JSON payload (Parameter Binding Proof) (22 ms)
+    Rate Limiting Logic
+      √ should trigger rate limits on rapid, repetitive failed auths (168 ms)
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env.test -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (18) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    Test database schema globally initialized.
+
+      at Object.log (tests/setup.js:33:17)
+
+[2026-03-19T14:10:39.222Z] POST /api/configurator/calculate-price 200 13.363 ms | RequestID: 99c5d581-9edc-4f87-a16c-f6615a89edf7
+[2026-03-19T14:10:39.251Z] POST /api/configurator/calculate-price 200 5.817 ms | RequestID: 321bee14-0efd-4ae8-8f6d-fee68e187d30
+[2026-03-19T14:10:39.271Z] POST /api/configurator/calculate-price 400 0.604 ms | RequestID: 925304ae-efd5-4601-a6b8-91634a8f8c48
+PASS tests/configurator.test.js
+  Product Configurator API
+    POST /api/configurator/calculate
+      √ should calculate base price with valid adjustments (41 ms)
+      √ should calculate correctly with empty configuration (27 ms)
+      √ should return 400 when missing product_id (19 ms)
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env.test -- tip: ⚙️  suppress all logs with { quiet: true }
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (18) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    Test database schema globally initialized.
+
+      at Object.log (tests/setup.js:33:17)
+
+[2026-03-19T14:10:40.017Z] GET /api/products 200 18.814 ms | RequestID: 37bf9821-be90-4fef-8e9a-d1376721868f
+[2026-03-19T14:10:40.042Z] GET /api/products?page=1&limit=2 200 7.280 ms | RequestID: be7e1ef1-62d8-4205-bc8c-2d139f53bd94
+[2026-03-19T14:10:40.066Z] GET /api/products/invalid-id-format 404 4.551 ms | RequestID: 6c6fdf85-9fab-4f96-a2c1-aab06d35fa0b
+[2026-03-19T14:10:40.087Z] GET /api/products/00000000-0000-0000-0000-000000000000 404 3.192 ms | RequestID: f39edced-ea76-463a-aa7d-4a6187375210
+PASS tests/products.test.js
+  Products API Endpoints
+    GET /api/products
+      √ should fetch a list of products (41 ms)
+      √ should correctly paginate products (25 ms)
+    GET /api/products/:id
+      √ should handle invalid UUID format (25 ms)
+      √ should return 404 for a non-existent valid UUID (18 ms)
+
+Test Suites: 1 failed, 8 passed, 9 total
+Tests:       1 failed, 30 passed, 31 total
+Snapshots:   0 total
+Time:        15.278 s, estimated 22 s
+Ran all test suites.

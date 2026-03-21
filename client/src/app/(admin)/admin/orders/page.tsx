@@ -52,7 +52,17 @@ export default function AdminOrdersPage() {
                     <p className="text-sm text-neutral-500">{total} total orders</p>
                 </div>
                 <button
-                    onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/admin/export/orders`, '_blank')}
+                    onClick={async () => {
+                        try {
+                            const blob = await api.exportData('orders');
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'orders_export.csv';
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                        } catch { /* ignore */ }
+                    }}
                     className="flex items-center gap-2 px-4 py-2.5 border border-neutral-200 bg-white text-neutral-600 rounded-xl font-medium text-sm hover:bg-neutral-50 transition-colors"
                 >
                     <Download className="w-4 h-4" /> Export CSV

@@ -344,11 +344,8 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                             <div className="grid grid-cols-2 gap-4">
                                 {imagePreviews.map((preview, idx) => (
                                     <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden group border border-neutral-100">
-<<<<<<< HEAD
-                                        <Image src={preview} alt="Preview" fill className="object-cover" />
-=======
                                         <Image src={preview} alt="Preview" fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover" />
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                                         <button
                                             type="button"
                                             onClick={() => removeImage(idx)}
@@ -437,11 +434,8 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                                                                 <label className="cursor-pointer flex flex-col items-center justify-center w-10 h-10 rounded-lg border-2 border-dashed border-neutral-300 hover:border-primary-orange transition-colors">
                                                                     {val.image_url ? (
                                                                         <div className="relative w-full h-full rounded-md overflow-hidden">
-<<<<<<< HEAD
-                                                                            <Image src={val.image_url} alt="Swatch" fill className="object-cover" />
-=======
                                                                             <Image src={val.image_url} alt="Swatch" fill sizes="40px" className="object-cover" />
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                                                                         </div>
                                                                     ) : (
                                                                         <Upload className="w-4 h-4 text-neutral-400" />

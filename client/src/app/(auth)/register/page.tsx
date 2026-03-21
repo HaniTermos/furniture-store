@@ -75,10 +75,8 @@ export default function RegisterPage() {
                         src="/images/placeholder.png"
                         alt="Join our community"
                         fill
-<<<<<<< HEAD
-=======
                         sizes="50vw"
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                         className="object-cover"
                     />
                 </div>
@@ -125,11 +123,8 @@ export default function RegisterPage() {
                     <div className="text-center lg:text-left space-y-2">
                         <Link href="/" className="inline-block mb-6 lg:hidden">
                             <div className="w-10 h-10 relative mx-auto">
-<<<<<<< HEAD
-                                <Image src="/images/logo.png" alt="Logo" fill className="object-contain" />
-=======
                                 <Image src="/images/logo.png" alt="Logo" fill sizes="40px" className="object-contain" />
->>>>>>> d1d77d0 (dashboard and variants edits)
+
                             </div>
                         </Link>
                         <h2 className="text-3xl font-bold">Create Account</h2>

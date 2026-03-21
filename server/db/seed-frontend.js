@@ -8,10 +8,6 @@ async function seedFrontendData() {
     try {
         logger.info('🌱 Starting FRONTEND database seed...');
 
-<<<<<<< HEAD
-        // Clear existing product data to insert clean frontend data
-        await pool.query('DELETE FROM cart_items');
-=======
         // Clear existing data in FK-safe order (children before parents)
         await pool.query('DELETE FROM order_items');
         await pool.query('DELETE FROM orders');
@@ -19,7 +15,7 @@ async function seedFrontendData() {
         await pool.query('DELETE FROM saved_design_selections');
         await pool.query('DELETE FROM saved_designs');
         await pool.query('DELETE FROM reviews');
->>>>>>> d1d77d0 (dashboard and variants edits)
+
         await pool.query('DELETE FROM configuration_values');
         await pool.query('DELETE FROM configuration_options');
         await pool.query('DELETE FROM product_images');

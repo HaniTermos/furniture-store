@@ -6,6 +6,7 @@ const { validate } = require('../middleware/validator');
 const { orderSchema } = require('../validation/orderSchemas');
 
 router.post('/', auth, validate(orderSchema), orderController.createOrder);
+router.post('/validate-coupon', auth, orderController.validateCoupon);
 router.get('/', auth, orderController.getUserOrders);
 router.get('/:id', auth, orderController.getOrder);
 router.put('/:id/cancel', auth, orderController.cancelOrder);
